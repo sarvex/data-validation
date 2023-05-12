@@ -654,7 +654,7 @@ class TopKUniquesSketchStatsGeneratorTest(test_util.CombinerStatsGeneratorTest,
     # fa: 4 12, 2 23, 2 34, 2 45
     def _map_nested_list(fn, val):
       if isinstance(val, list):
-        return list([_map_nested_list(fn, v) for v in val])
+        return [_map_nested_list(fn, v) for v in val]
       return fn(val)
 
     data = [[[12, 23, 34, 12], [45, 23]], [[12, 12, 34, 45]]]

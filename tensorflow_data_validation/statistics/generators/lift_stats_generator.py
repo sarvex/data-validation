@@ -188,12 +188,7 @@ def _get_example_value_presence(
   unique_rows = np.unique(rows, axis=1)
   example_indices = unique_rows[0, :]
   values = unique_rows[1, :]
-  if is_binary_like:
-    # return binary like values a pd.Categorical wrapped in a Series. This makes
-    # subsqeuent operations like pd.Merge cheaper.
-    values = arr_flat_dict[values].tolist()
-  else:
-    values = values.tolist()  # converts values to python native types.
+  values = arr_flat_dict[values].tolist() if is_binary_like else values.tolist()
   if weight_column_name:
     weights = arrow_util.get_weight_feature(record_batch, weight_column_name)
     weights = np.asarray(weights)[example_indices].tolist()
@@ -379,7 +374,7 @@ def _make_dataset_feature_stats_proto(
 
     if output_custom_stats:
       hist = feature_stats.custom_stats.add(
-          name='Lift (Y={})'.format(y_display_val)).rank_histogram
+          name=f'Lift (Y={y_display_val})').rank_histogram
 
     # dedupe possibly overlapping top_k and bottom_k x values.
     lift_values_deduped = {v.x: v for v in lift_series.lift_values}
@@ -871,19 +866,17 @@ class _LiftStatsGenerator(beam.PTransform):
     if self._schema is not None:
       y_feature = schema_util.get_feature(self._schema, y_path)
       y_is_categorical = schema_util.is_categorical_feature(y_feature)
-      if self._y_boundaries is not None:
-        if y_is_categorical:
-          raise ValueError(
-              'Boundaries cannot be applied to a categorical y_path')
-      else:
+      if self._y_boundaries is None:
         if not y_is_categorical:
           raise ValueError('Boundaries must be provided with a non-categorical '
                            'y_path.')
+      elif y_is_categorical:
+        raise ValueError(
+            'Boundaries cannot be applied to a categorical y_path')
     if x_paths is not None:
       self._x_paths = x_paths
     elif self._schema is not None:
-      self._x_paths = (
-          set(schema_util.get_categorical_features(schema)) - set([y_path]))
+      self._x_paths = set(schema_util.get_categorical_features(schema)) - {y_path}
     else:
       raise ValueError('Either a schema or x_paths must be provided.')
 

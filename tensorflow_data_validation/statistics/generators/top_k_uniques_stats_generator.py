@@ -119,11 +119,10 @@ def _to_topk_tuples(
       value_counts = flattened_values.value_counts()
       values = value_counts.field('values').to_pylist()
       counts = value_counts.field('counts').to_pylist()
-      if has_any_weight:
-        for value, count in zip(values, counts):
+      for value, count in zip(values, counts):
+        if has_any_weight:
           yield ((slice_key, feature_path.steps(), value), (count, 1))
-      else:
-        for value, count in zip(values, counts):
+        else:
           yield ((slice_key, feature_path.steps(), value), count)
 
 
@@ -177,12 +176,7 @@ class _ComputeTopKUniquesStats(beam.PTransform):
       return arr['c'].sum(), arr['w'].sum()
 
     has_any_weight = bool(self._example_weight_map.all_weight_features())
-    if has_any_weight:
-      sum_fn = _sum_pairwise
-    else:
-      # For non-weighted case, use sum combine fn over integers to allow Beam
-      # to use Cython combiner.
-      sum_fn = sum
+    sum_fn = _sum_pairwise if has_any_weight else sum
     top_k_tuples_combined = (
         pcoll
         | 'ToTopKTuples' >> beam.FlatMap(

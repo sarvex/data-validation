@@ -30,6 +30,7 @@ values_threshold), then the feature is marked as Time by generating the
 appropriate domain_info with format as a custom statsistic.
 """
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -82,7 +83,7 @@ _UNIX_TIMES = [
         end=1893456000000000000),
 ]
 
-_UNIX_TIME_FORMATS = set([time.format_constant for time in _UNIX_TIMES])
+_UNIX_TIME_FORMATS = {time.format_constant for time in _UNIX_TIMES}
 
 # Custom statistics exported by this generator.
 _MATCHING_FORMAT = 'time_format'
@@ -168,10 +169,8 @@ def _build_all_formats() -> Iterable[Text]:
   Yields:
     All valid date, time, and combination date and time formats.
   """
-  for date_fmt in _DATE_ONLY_FORMATS:
-    yield date_fmt
-  for time_fmt in _TIME_ONLY_FORMATS:
-    yield time_fmt
+  yield from _DATE_ONLY_FORMATS
+  yield from _TIME_ONLY_FORMATS
   for date_fmt in _DATE_ONLY_FORMATS:
     for time_fmt in _TIME_ONLY_FORMATS:
       for time_delimiter in _TIME_DELIMITERS:
@@ -190,8 +189,7 @@ def _build_all_formats_regexes(
     (strptime_format, compiled regex) tuples.
   """
   for strptime_format in strptime_formats:
-    compiled_regex = re.compile(r'^{}$'.format(
-        _convert_strptime_to_regex(strptime_format)))
+    compiled_regex = re.compile(f'^{_convert_strptime_to_regex(strptime_format)}$')
     yield (strptime_format, compiled_regex)
 
 
@@ -281,8 +279,8 @@ class TimeStatsGenerator(stats_generator.CombinerFeatureStatsGenerator):
     super(TimeStatsGenerator, self).__init__(name)
     if values_threshold <= 0:
       raise ValueError(
-          'TimeStatsGenerator expects a values_threshold > 0, got %s.' %
-          values_threshold)
+          f'TimeStatsGenerator expects a values_threshold > 0, got {values_threshold}.'
+      )
     if not 0 < match_ratio <= 1:
       raise ValueError('TimeStatsGenerator expects a match_ratio in (0, 1].')
     self._match_ratio = match_ratio

@@ -86,15 +86,16 @@ def _get_components(
   """Returns the index and value feature paths that comprise sparse features."""
   # A dict mapping sparse feature paths to their component index and value
   # feature paths.
-  sparse_feature_components = dict()
+  sparse_feature_components = {}
   # The index and value features for a given sparse feature have the same parent
   # path as the sparse feature.
   for path, feature in sparse_features:
     parent_path = path.parent()
     value_feature = parent_path.child(feature.value_feature.name)
-    index_features = set()
-    for index_feature in feature.index_feature:
-      index_features.add(parent_path.child(index_feature.name))
+    index_features = {
+        parent_path.child(index_feature.name)
+        for index_feature in feature.index_feature
+    }
     sparse_feature_components[path] = _SparseFeatureComponents(
         value_feature, index_features)
   return sparse_feature_components
@@ -123,13 +124,11 @@ class SparseFeatureStatsGenerator(stats_generator.CompositeStatsGenerator):
       constituents.append(
           count_missing_generator.CountMissingGenerator(value, required_paths))
       for index in indices:
-        constituents.append(
+        constituents.extend((
             length_diff_generator.LengthDiffGenerator(index, value,
-                                                      required_paths))
-        constituents.append(
-            count_missing_generator.CountMissingGenerator(
-                index, required_paths))
-
+                                                      required_paths),
+            count_missing_generator.CountMissingGenerator(index, required_paths),
+        ))
     super(SparseFeatureStatsGenerator, self).__init__(name, constituents,
                                                       schema)
 

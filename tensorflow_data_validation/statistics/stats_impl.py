@@ -150,12 +150,8 @@ class GenerateSlicedStatisticsImpl(beam.PTransform):
   def expand(
       self, dataset: beam.PCollection[types.SlicedRecordBatch]
   ) -> beam.PCollection[statistics_pb2.DatasetFeatureStatisticsList]:
-    # Handles generators by their type:
-    #   - CombinerStatsGenerators will be wrapped in a single CombinePerKey by
-    #     _CombinerStatsGeneratorsCombineFn.
-    #   - TransformStatsGenerator will be invoked separately with `dataset`.
-    combiner_stats_generators = []
     result_protos = []
+    combiner_stats_generators = []
     for generator in get_generators(self._options):
       if isinstance(generator, stats_generator.CombinerStatsGenerator):
         combiner_stats_generators.append(generator)
@@ -164,10 +160,9 @@ class GenerateSlicedStatisticsImpl(beam.PTransform):
             dataset
             | generator.name >> generator.ptransform)
       else:
-        raise TypeError('Statistics generator must extend one of '
-                        'CombinerStatsGenerator or TransformStatsGenerator, '
-                        'found object of type %s' %
-                        generator.__class__.__name__)
+        raise TypeError(
+            f'Statistics generator must extend one of CombinerStatsGenerator or TransformStatsGenerator, found object of type {generator.__class__.__name__}'
+        )
     if combiner_stats_generators:
       # TODO(b/162543416): Obviate the need for explicit fanout.
       fanout = max(
@@ -268,13 +263,10 @@ def get_generators(options: stats_options.StatsOptions,
               example_weight_map=options.example_weight_map,
               output_custom_stats=True))
 
-  # Replace all CombinerFeatureStatsGenerator with a single
-  # CombinerFeatureStatsWrapperGenerator.
-  feature_generators = [
+  if feature_generators := [
       x for x in generators
       if isinstance(x, stats_generator.CombinerFeatureStatsGenerator)
-  ]
-  if feature_generators:
+  ]:
     generators = [
         x for x in generators
         if not isinstance(x, stats_generator.CombinerFeatureStatsGenerator)
@@ -284,10 +276,9 @@ def get_generators(options: stats_options.StatsOptions,
   if in_memory:
     for generator in generators:
       if not isinstance(generator, stats_generator.CombinerStatsGenerator):
-        raise TypeError('Statistics generator used in '
-                        'generate_statistics_in_memory must '
-                        'extend CombinerStatsGenerator, found object of '
-                        'type %s.' % generator.__class__.__name__)
+        raise TypeError(
+            f'Statistics generator used in generate_statistics_in_memory must extend CombinerStatsGenerator, found object of type {generator.__class__.__name__}.'
+        )
   return generators
 
 
@@ -364,17 +355,14 @@ def _schema_has_sparse_features(schema: schema_pb2.Schema) -> bool:
         return _has_sparse_features(f.struct_domain.feature)
     return False
 
-  if schema.sparse_feature:
-    return True
-  return _has_sparse_features(schema.feature)
+  return True if schema.sparse_feature else _has_sparse_features(schema.feature)
 
 
 def _schema_has_natural_language_domains(schema: schema_pb2.Schema) -> bool:
   """Returns whether there are features in the schema with a nl domain."""
-  for f in schema.feature:
-    if f.WhichOneof('domain_info') == 'natural_language_domain':
-      return True
-  return False
+  return any(
+      f.WhichOneof('domain_info') == 'natural_language_domain'
+      for f in schema.feature)
 
 
 def _filter_features(
@@ -596,11 +584,8 @@ class _CombinerStatsGeneratorsCombineFn(beam.CombineFn):
     if curr_batch_size >= self._desired_batch_size:
       return True
 
-    if (accumulator.curr_byte_size >=
-        self._MERGE_RECORD_BATCH_BYTE_SIZE_THRESHOLD):
-      return True
-
-    return False
+    return (accumulator.curr_byte_size >=
+            self._MERGE_RECORD_BATCH_BYTE_SIZE_THRESHOLD)
 
   def _maybe_do_batch(
       self,
@@ -704,7 +689,6 @@ def generate_partial_statistics_in_memory(
   Returns:
     A list of accumulators containing partial statistics.
   """
-  result = []
   if options.feature_allowlist:
     columns, features = [], []
     for feature_name in options.feature_allowlist:
@@ -713,10 +697,10 @@ def generate_partial_statistics_in_memory(
         columns.append(c)
         features.append(feature_name)
     record_batch = pa.RecordBatch.from_arrays(columns, features)
-  for generator in stats_generators:
-    result.append(
-        generator.add_input(generator.create_accumulator(), record_batch))
-  return result
+  return [
+      generator.add_input(generator.create_accumulator(), record_batch)
+      for generator in stats_generators
+  ]
 
 
 def generate_statistics_in_memory(

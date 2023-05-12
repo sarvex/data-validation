@@ -286,8 +286,5 @@ def output_categorical_numeric(categorical_numeric_types: Mapping[
   if (feature_type == statistics_pb2.FeatureNameStatistics.INT and
       schema_type == schema_pb2.INT):
     return True
-  if (feature_type == statistics_pb2.FeatureNameStatistics.FLOAT and
-      schema_type == schema_pb2.FLOAT):
-    return True
-
-  return False
+  return (feature_type == statistics_pb2.FeatureNameStatistics.FLOAT
+          and schema_type == schema_pb2.FLOAT)

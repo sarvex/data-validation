@@ -39,7 +39,7 @@ class ColumnHasher(object):
       md5_hash = hashlib.md5(feature_name.encode('utf-8')).hexdigest()
     else:
       md5_hash = hashlib.md5(bytes(feature_name)).hexdigest()
-    partition = int(md5_hash[0:8], 16) % self.num_partitions
+    partition = int(md5_hash[:8], 16) % self.num_partitions
     partition = (partition + int(md5_hash[8:], 16)) % self.num_partitions
     self._cache[feature_name] = partition
     return partition

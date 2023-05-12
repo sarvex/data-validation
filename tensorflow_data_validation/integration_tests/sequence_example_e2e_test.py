@@ -1691,8 +1691,7 @@ class SequenceExampleStatsTest(parameterized.TestCase):
     tf.io.gfile.makedirs(os.path.dirname(cls._input_file))
     examples = []
     for _ in range(10):
-      examples.append(_EXAMPLE_A)
-      examples.append(_EXAMPLE_B)
+      examples.extend((_EXAMPLE_A, _EXAMPLE_B))
     with tf.io.TFRecordWriter(cls._input_file) as w:
       for e in examples:
         w.write(e)

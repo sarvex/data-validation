@@ -163,8 +163,9 @@ def update_schema(schema: schema_pb2.Schema,
   del infer_feature_shape
 
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
   if not isinstance(statistics, statistics_pb2.DatasetFeatureStatisticsList):
     raise TypeError(
         'statistics is of type %s, should be '
@@ -258,13 +259,11 @@ def validate_statistics(
   # This check is added here because the arguments name for previous_statistics
   # is different in TFX::OSS and TFX internal. It is preferred to report the
   # error with the name used in the API.
-  if previous_statistics is not None:
-    if not isinstance(
-        previous_statistics, statistics_pb2.DatasetFeatureStatisticsList):
-      raise TypeError(
-          'previous_statistics is of type %s, should be '
-          'a DatasetFeatureStatisticsList proto.'
-          % type(previous_statistics).__name__)
+  if previous_statistics is not None and not isinstance(
+      previous_statistics, statistics_pb2.DatasetFeatureStatisticsList):
+    raise TypeError(
+        f'previous_statistics is of type {type(previous_statistics).__name__}, should be a DatasetFeatureStatisticsList proto.'
+    )
 
   return validate_statistics_internal(statistics, schema, environment,
                                       previous_statistics, serving_statistics)
@@ -357,15 +356,15 @@ def validate_statistics_internal(
   dataset_statistics = _get_default_dataset_statistics(statistics)
 
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
-  if environment is not None:
-    if environment not in schema.default_environment:
-      raise ValueError('Environment %s not found in the schema.' % environment)
-  else:
+  if environment is None:
     environment = ''
 
+  elif environment not in schema.default_environment:
+    raise ValueError(f'Environment {environment} not found in the schema.')
   if previous_span_statistics is not None:
     if not isinstance(
         previous_span_statistics, statistics_pb2.DatasetFeatureStatisticsList):
@@ -460,12 +459,11 @@ def _remove_features_missing_common_stats(
   Returns:
     A version of the input stats with the feature paths removed.
   """
-  valid_features = []
-  for feature in stats.features:
-    if (feature.HasField('num_stats') or feature.HasField('string_stats') or
-        feature.HasField('bytes_stats') or
-        feature.HasField('struct_stats')):
-      valid_features.append(feature)
+  valid_features = [
+      feature for feature in stats.features
+      if (feature.HasField('num_stats') or feature.HasField('string_stats') or
+          feature.HasField('bytes_stats') or feature.HasField('struct_stats'))
+  ]
   del stats.features[:]
   stats.features.extend(valid_features)
   return stats
@@ -567,9 +565,8 @@ class _GenerateAnomalyReasonSliceKeys(beam.DoFn):
       self, element: Tuple[pa.RecordBatch, anomalies_pb2.Anomalies]
   ) -> Iterable[types.SlicedRecordBatch]:
     record_batch, anomalies_proto = element
-    for sliced_record_batch in slicing_util.generate_slices(
-        record_batch, [anomalies_util.get_anomalies_slicer(anomalies_proto)]):
-      yield sliced_record_batch
+    yield from slicing_util.generate_slices(
+        record_batch, [anomalies_util.get_anomalies_slicer(anomalies_proto)])
 
 
 class IdentifyAnomalousExamples(beam.PTransform):

@@ -2537,8 +2537,7 @@ class ValidationApiTest(ValidationTestCase):
 
 class NLValidationTest(ValidationTestCase):
 
-  @parameterized.named_parameters(*[
-      dict(
+  @parameterized.named_parameters(*[dict(
           testcase_name='no_coverage',
           min_coverage=None,
           feature_coverage=None,
@@ -2546,19 +2545,7 @@ class NLValidationTest(ValidationTestCase):
           feature_avg_token_length=None,
           expected_anomaly_types=set(),
           expected_min_coverage=None,
-          expected_min_avg_token_length=None),
-      dict(
-          testcase_name='missing_stats',
-          min_coverage=0.4,
-          feature_coverage=None,
-          min_avg_token_length=None,
-          feature_avg_token_length=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.STATS_NOT_AVAILABLE]),
-          expected_min_coverage=None,
-          expected_min_avg_token_length=None,
-      ),
-      dict(
+          expected_min_avg_token_length=None), dict(testcase_name='missing_stats', min_coverage=0.4, feature_coverage=None, min_avg_token_length=None, feature_avg_token_length=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.STATS_NOT_AVAILABLE}, expected_min_coverage=None, expected_min_avg_token_length=None), dict(
           testcase_name='low_min_coverage',
           min_coverage=0.4,
           feature_coverage=0.5,
@@ -2566,19 +2553,7 @@ class NLValidationTest(ValidationTestCase):
           feature_avg_token_length=None,
           expected_anomaly_types=set(),
           expected_min_coverage=0.4,
-          expected_min_avg_token_length=None),
-      dict(
-          testcase_name='high_min_coverage',
-          min_coverage=0.5,
-          feature_coverage=0.4,
-          min_avg_token_length=None,
-          feature_avg_token_length=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.FEATURE_COVERAGE_TOO_LOW]),
-          expected_min_coverage=0.4,
-          expected_min_avg_token_length=None,
-      ),
-      dict(
+          expected_min_avg_token_length=None), dict(testcase_name='high_min_coverage', min_coverage=0.5, feature_coverage=0.4, min_avg_token_length=None, feature_avg_token_length=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.FEATURE_COVERAGE_TOO_LOW}, expected_min_coverage=0.4, expected_min_avg_token_length=None), dict(
           testcase_name='low_min_avg_token_length',
           min_coverage=None,
           feature_coverage=None,
@@ -2587,21 +2562,8 @@ class NLValidationTest(ValidationTestCase):
           expected_anomaly_types=set(),
           expected_min_coverage=None,
           expected_min_avg_token_length=4,
-      ),
-      dict(
-          testcase_name='high_min_avg_token_length',
-          min_coverage=None,
-          feature_coverage=None,
-          min_avg_token_length=5,
-          feature_avg_token_length=4,
-          expected_anomaly_types=set([
-              anomalies_pb2.AnomalyInfo
-              .FEATURE_COVERAGE_TOO_SHORT_AVG_TOKEN_LENGTH
-          ]),
-          expected_min_coverage=None,
-          expected_min_avg_token_length=4,
-      ),
-  ])
+      ), dict(testcase_name='high_min_avg_token_length', min_coverage=None, feature_coverage=None, min_avg_token_length=5, feature_avg_token_length=4, expected_anomaly_types={anomalies_pb2.AnomalyInfo
+              .FEATURE_COVERAGE_TOO_SHORT_AVG_TOKEN_LENGTH}, expected_min_coverage=None, expected_min_avg_token_length=4)])
   def test_validate_nl_domain_coverage(self, min_coverage, feature_coverage,
                                        min_avg_token_length,
                                        feature_avg_token_length,
@@ -2656,8 +2618,7 @@ class NLValidationTest(ValidationTestCase):
     # Validate the stats and update schema.
     anomalies = validation_api.validate_statistics(statistics, schema)
     schema = validation_api.update_schema(schema, statistics)
-    anomaly_types = set(
-        [r.type for r in anomalies.anomaly_info['nl_feature'].reason])
+    anomaly_types = {r.type for r in anomalies.anomaly_info['nl_feature'].reason}
     self.assertSetEqual(expected_anomaly_types, anomaly_types)
 
     for field, str_field in [(expected_min_coverage, 'min_coverage'),
@@ -2672,61 +2633,14 @@ class NLValidationTest(ValidationTestCase):
             getattr(schema.feature[0].natural_language_domain.coverage,
                     str_field), field)
 
-  @parameterized.named_parameters(*[
-      dict(
-          testcase_name='missing_stats',
-          token_name=100,
-          fraction_values=(None, 0.4, 0.6),
-          sequence_values=(None, None, None, 1, 3),
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.STATS_NOT_AVAILABLE]),
-          expected_fraction_values=None,
-          expected_sequence_values=None),
-      dict(
+  @parameterized.named_parameters(*[dict(testcase_name='missing_stats', token_name=100, fraction_values=(None, 0.4, 0.6), sequence_values=(None, None, None, 1, 3), expected_anomaly_types={anomalies_pb2.AnomalyInfo.STATS_NOT_AVAILABLE}, expected_fraction_values=None, expected_sequence_values=None), dict(
           testcase_name='all_fraction_constraints_satisfied',
           token_name=100,
           fraction_values=(0.5, 0.4, 0.6),
           sequence_values=None,
           expected_anomaly_types=set(),
           expected_fraction_values=(0.4, 0.6),
-          expected_sequence_values=None),
-      dict(
-          testcase_name='int_token_min_fraction_constraint_too_high',
-          token_name=100,
-          fraction_values=(0.5, 0.6, 0.6),
-          sequence_values=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_SMALL_FRACTION]),
-          expected_fraction_values=(0.5, 0.6),
-          expected_sequence_values=None),
-      dict(
-          testcase_name='string_token_min_fraction_constraint_too_high',
-          token_name='str',
-          fraction_values=(0.5, 0.6, 0.6),
-          sequence_values=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_SMALL_FRACTION]),
-          expected_fraction_values=(0.5, 0.6),
-          expected_sequence_values=None),
-      dict(
-          testcase_name='int_token_max_fraction_constraint_too_low',
-          token_name=100,
-          fraction_values=(0.5, 0.4, 0.4),
-          sequence_values=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_LARGE_FRACTION]),
-          expected_fraction_values=(0.4, 0.5),
-          expected_sequence_values=None),
-      dict(
-          testcase_name='string_token_max_fraction_constraint_too_low',
-          token_name='str',
-          fraction_values=(0.5, 0.4, 0.4),
-          sequence_values=None,
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_LARGE_FRACTION]),
-          expected_fraction_values=(0.4, 0.5),
-          expected_sequence_values=None),
-      dict(
+          expected_sequence_values=None), dict(testcase_name='int_token_min_fraction_constraint_too_high', token_name=100, fraction_values=(0.5, 0.6, 0.6), sequence_values=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_SMALL_FRACTION}, expected_fraction_values=(0.5, 0.6), expected_sequence_values=None), dict(testcase_name='string_token_min_fraction_constraint_too_high', token_name='str', fraction_values=(0.5, 0.6, 0.6), sequence_values=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_SMALL_FRACTION}, expected_fraction_values=(0.5, 0.6), expected_sequence_values=None), dict(testcase_name='int_token_max_fraction_constraint_too_low', token_name=100, fraction_values=(0.5, 0.4, 0.4), sequence_values=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_LARGE_FRACTION}, expected_fraction_values=(0.4, 0.5), expected_sequence_values=None), dict(testcase_name='string_token_max_fraction_constraint_too_low', token_name='str', fraction_values=(0.5, 0.4, 0.4), sequence_values=None, expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_LARGE_FRACTION}, expected_fraction_values=(0.4, 0.5), expected_sequence_values=None), dict(
           testcase_name='all_sequence_constraints_satisfied',
           token_name=100,
           fraction_values=None,
@@ -2734,48 +2648,7 @@ class NLValidationTest(ValidationTestCase):
           expected_anomaly_types=set(),
           expected_fraction_values=None,
           expected_sequence_values=(1, 3),
-      ),
-      dict(
-          testcase_name='int_token_min_sequence_constraint_too_high',
-          token_name=100,
-          fraction_values=None,
-          sequence_values=(0, 2, 1, 1, 3),
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_FEW_OCCURRENCES]),
-          expected_fraction_values=None,
-          expected_sequence_values=(0, 3),
-      ),
-      dict(
-          testcase_name='string_token_min_sequence_constraint_too_high',
-          token_name='str',
-          fraction_values=None,
-          sequence_values=(0, 2, 1, 1, 3),
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_FEW_OCCURRENCES]),
-          expected_fraction_values=None,
-          expected_sequence_values=(0, 3),
-      ),
-      dict(
-          testcase_name='int_token_max_sequence_constraint_too_low',
-          token_name=100,
-          fraction_values=None,
-          sequence_values=(2, 4, 3, 1, 3),
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_MANY_OCCURRENCES]),
-          expected_fraction_values=None,
-          expected_sequence_values=(1, 4),
-      ),
-      dict(
-          testcase_name='string_token_max_sequence_constraint_too_low',
-          token_name='str',
-          fraction_values=None,
-          sequence_values=(2, 4, 3, 1, 3),
-          expected_anomaly_types=set(
-              [anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_MANY_OCCURRENCES]),
-          expected_fraction_values=None,
-          expected_sequence_values=(1, 4),
-      ),
-  ])
+      ), dict(testcase_name='int_token_min_sequence_constraint_too_high', token_name=100, fraction_values=None, sequence_values=(0, 2, 1, 1, 3), expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_FEW_OCCURRENCES}, expected_fraction_values=None, expected_sequence_values=(0, 3)), dict(testcase_name='string_token_min_sequence_constraint_too_high', token_name='str', fraction_values=None, sequence_values=(0, 2, 1, 1, 3), expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_FEW_OCCURRENCES}, expected_fraction_values=None, expected_sequence_values=(0, 3)), dict(testcase_name='int_token_max_sequence_constraint_too_low', token_name=100, fraction_values=None, sequence_values=(2, 4, 3, 1, 3), expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_MANY_OCCURRENCES}, expected_fraction_values=None, expected_sequence_values=(1, 4)), dict(testcase_name='string_token_max_sequence_constraint_too_low', token_name='str', fraction_values=None, sequence_values=(2, 4, 3, 1, 3), expected_anomaly_types={anomalies_pb2.AnomalyInfo.SEQUENCE_VALUE_TOO_MANY_OCCURRENCES}, expected_fraction_values=None, expected_sequence_values=(1, 4))])
   def test_validate_nl_domain_token_constraints(self, token_name,
                                                 fraction_values,
                                                 sequence_values,
@@ -2816,14 +2689,14 @@ class NLValidationTest(ValidationTestCase):
         token_constraint.int_value = token_name
       else:
         token_constraint.string_value = token_name
-      if min_fraction is not None:
-        token_constraint.min_fraction_of_sequences = min_fraction
-      if max_fraction is not None:
-        token_constraint.max_fraction_of_sequences = max_fraction
-      if min_sequence is not None:
-        token_constraint.min_per_sequence = min_sequence
-      if max_sequence is not None:
-        token_constraint.max_per_sequence = max_sequence
+    if min_fraction is not None:
+      token_constraint.min_fraction_of_sequences = min_fraction
+    if max_fraction is not None:
+      token_constraint.max_fraction_of_sequences = max_fraction
+    if min_sequence is not None:
+      token_constraint.min_per_sequence = min_sequence
+    if max_sequence is not None:
+      token_constraint.max_per_sequence = max_sequence
 
     statistics = text_format.Parse(
         """
@@ -2871,8 +2744,7 @@ class NLValidationTest(ValidationTestCase):
 
     # Validate the stats.
     anomalies = validation_api.validate_statistics(statistics, schema)
-    anomaly_types = set(
-        [r.type for r in anomalies.anomaly_info['nl_feature'].reason])
+    anomaly_types = {r.type for r in anomalies.anomaly_info['nl_feature'].reason}
     self.assertSetEqual(anomaly_types, expected_anomaly_types)
 
     schema = validation_api.update_schema(schema, statistics)

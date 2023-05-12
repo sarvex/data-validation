@@ -92,10 +92,10 @@ class FeaturePath(object):
   def from_json(path_json: Text):
     steps = json.loads(path_json)
     if not isinstance(steps, list):
-      raise TypeError("Invalid FeaturePath json: %s" % path_json)
+      raise TypeError(f"Invalid FeaturePath json: {path_json}")
     for s in steps:
       if not isinstance(s, str):
-        raise TypeError("Invalid FeaturePath json: %s" % path_json)
+        raise TypeError(f"Invalid FeaturePath json: {path_json}")
     return FeaturePath(steps)
 
   def steps(self) -> FeaturePathTuple:

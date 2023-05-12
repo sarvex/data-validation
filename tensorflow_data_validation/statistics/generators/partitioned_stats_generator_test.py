@@ -340,10 +340,9 @@ class SampleRecordBatchRows(parameterized.TestCase):
     pipeline_result = p.run()
     pipeline_result.wait_until_finish()
     metrics = pipeline_result.metrics()
-    num_compacts_metric = metrics.query(
+    if num_compacts_metric := metrics.query(
         beam.metrics.metric.MetricsFilter().with_name(
-            'sample_record_batch_rows_num_compacts'))['counters']
-    if num_compacts_metric:
+            'sample_record_batch_rows_num_compacts'))['counters']:
       self.assertEqual(num_compacts_metric[0].committed, num_compacts)
 
   def test_sample_metrics(self):
@@ -641,9 +640,8 @@ class NonStreamingCustomStatsGeneratorTest(test_util.TransformStatsGeneratorTest
   def test_sklearn_mi_with_slicing(self):
     sliced_record_batches = []
     for slice_key in ['slice1', 'slice2']:
-      for record_batch in self.record_batches:
-        sliced_record_batches.append((slice_key, record_batch))
-
+      sliced_record_batches.extend(
+          (slice_key, record_batch) for record_batch in self.record_batches)
     expected_result = [
         ('slice1',
          _get_test_stats_with_mi([

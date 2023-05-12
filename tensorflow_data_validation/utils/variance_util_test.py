@@ -128,9 +128,7 @@ class MeanVarAccumulatorTest(parameterized.TestCase):
     rng = np.random.default_rng(4444444)
     values = rng.standard_normal(array_size) * np.sqrt(
         distribution_variance) + distribution_mean
-    weights = None
-    if use_weights:
-      weights = np.abs(rng.standard_normal(array_size))
+    weights = np.abs(rng.standard_normal(array_size)) if use_weights else None
     expected_mean = _weighted_mean(values, weights)
     expected_variance = _weighted_variance(values, weights)
     # Check a variety of splits of the data.
@@ -159,9 +157,7 @@ class MeanVarAccumulatorTest(parameterized.TestCase):
     rng = np.random.default_rng(4444444)
     values = rng.standard_normal(array_size) * np.sqrt(
         distribution_variance) + distribution_mean
-    weights = None
-    if use_weights:
-      weights = np.abs(rng.standard_normal(array_size))
+    weights = np.abs(rng.standard_normal(array_size)) if use_weights else None
     expected_mean = _weighted_mean(values, weights)
     expected_variance = _weighted_variance(values, weights)
     if weights is None:

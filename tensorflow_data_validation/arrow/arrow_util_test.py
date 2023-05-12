@@ -388,8 +388,8 @@ class ArrowUtilTest(parameterized.TestCase):
     expected_indices = np.array([0, 0, 1])
     self.assertTrue(
         actual_arr.equals(expected_arr),
-        "\nfeature: {};\nexpected:\n{};\nactual:\n{}".format(
-            feature, expected_arr, actual_arr))
+        f"\nfeature: {feature};\nexpected:\n{expected_arr};\nactual:\n{actual_arr}",
+    )
     np.testing.assert_array_equal(expected_indices, actual_indices)
 
   def testGetArraySubpathMissing(self):
@@ -410,8 +410,8 @@ class ArrowUtilTest(parameterized.TestCase):
     expected_arr, expected_indices, _ = expected
     self.assertTrue(
         actual_arr.equals(expected_arr),
-        "\nfeature: {};\nexpected:\n{};\nactual:\n{}".format(
-            feature, expected_arr, actual_arr))
+        f"\nfeature: {feature};\nexpected:\n{expected_arr};\nactual:\n{actual_arr}",
+    )
     np.testing.assert_array_equal(expected_indices, actual_indices)
 
   @parameterized.named_parameters(
@@ -423,8 +423,8 @@ class ArrowUtilTest(parameterized.TestCase):
     expected_arr, _, _ = expected
     self.assertTrue(
         actual_arr.equals(expected_arr),
-        "\nfeature: {};\nexpected:\n{};\nactual:\n{}".format(
-            feature, expected_arr, actual_arr))
+        f"\nfeature: {feature};\nexpected:\n{expected_arr};\nactual:\n{actual_arr}",
+    )
     self.assertIsNone(actual_indices)
 
   @parameterized.named_parameters(
@@ -438,8 +438,8 @@ class ArrowUtilTest(parameterized.TestCase):
       expected_arr = array_util.ToSingletonListArray(expected_arr)
     self.assertTrue(
         actual_arr.equals(expected_arr),
-        "\nfeature: {};\nexpected:\n{};\nactual:\n{}".format(
-            feature, expected_arr, actual_arr))
+        f"\nfeature: {feature};\nexpected:\n{expected_arr};\nactual:\n{actual_arr}",
+    )
     np.testing.assert_array_equal(expected_indices, actual_indices)
 
   def testEnumerateArraysStringWeight(self):
@@ -459,13 +459,16 @@ class ArrowUtilTest(parameterized.TestCase):
   def testEnumerateArrays(self):
     for leaves_only, has_weights, wrap_flat_struct_in_list in (
         itertools.product([True, False], [True, False], [True, False])):
-      actual_results = {}
-      for feature_path, feature_array, weights in arrow_util.enumerate_arrays(
-          _INPUT_RECORD_BATCH,
-          _EXAMPLE_WEIGHT_MAP
-          if has_weights else None, leaves_only, wrap_flat_struct_in_list):
-        actual_results[feature_path] = (feature_array, weights)
-
+      actual_results = {
+          feature_path: (feature_array, weights)
+          for feature_path, feature_array, weights in
+          arrow_util.enumerate_arrays(
+              _INPUT_RECORD_BATCH,
+              _EXAMPLE_WEIGHT_MAP if has_weights else None,
+              leaves_only,
+              wrap_flat_struct_in_list,
+          )
+      }
       expected_results = {}
       # leaf fields
       for p in [["f1"], ["w"], ["w_override1"], ["w_override2"],
@@ -491,10 +494,9 @@ class ArrowUtilTest(parameterized.TestCase):
         self.assertIn(k, actual_results)
         actual = actual_results[k]
         self.assertTrue(
-            actual[0].equals(v[0]), "leaves_only={}; has_weights={}; "
-            "wrap_flat_struct_in_list={} feature={}; expected: {}; actual: {}"
-            .format(leaves_only, has_weights, wrap_flat_struct_in_list, k, v,
-                    actual))
+            actual[0].equals(v[0]),
+            f"leaves_only={leaves_only}; has_weights={has_weights}; wrap_flat_struct_in_list={wrap_flat_struct_in_list} feature={k}; expected: {v}; actual: {actual}",
+        )
         np.testing.assert_array_equal(actual[1], v[1])
 
   @parameterized.named_parameters(itertools.chain(
@@ -504,10 +506,11 @@ class ArrowUtilTest(parameterized.TestCase):
       _MakeEnumerateTestDataWithSlicesAtDifferentOffsets()))
   def testEnumerateMissingPropagatedInFlattenedStruct(self, batch,
                                                       expected_results):
-    actual_results = {}
-    for feature_path, feature_array, _ in arrow_util.enumerate_arrays(
-        batch, example_weight_map=None, enumerate_leaves_only=False):
-      actual_results[feature_path] = feature_array
+    actual_results = {
+        feature_path: feature_array
+        for feature_path, feature_array, _ in arrow_util.enumerate_arrays(
+            batch, example_weight_map=None, enumerate_leaves_only=False)
+    }
     self.assertLen(actual_results, len(expected_results))
     for k, v in six.iteritems(expected_results):
       assert k in actual_results, (k, list(actual_results.keys()))
@@ -516,8 +519,8 @@ class ArrowUtilTest(parameterized.TestCase):
       v = _Normalize(v)
       self.assertTrue(
           actual.equals(v),
-          "feature={}; expected: {}; actual: {}; diff: {}".format(
-              k, v, actual, actual.diff(v)))
+          f"feature={k}; expected: {v}; actual: {actual}; diff: {actual.diff(v)}",
+      )
 
   def testFlattenNested(self):
     input_array = pa.array([[[1, 2]], None, [None, [3]]])

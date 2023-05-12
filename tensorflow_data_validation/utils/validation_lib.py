@@ -48,8 +48,8 @@ def _encode_example_and_key(coder: example_coder.RecordBatchToExamplesEncoder,
   k, v = kv
   result = []
   for record_batch in v:
-    for serialized_example in coder.encode(record_batch):
-      result.append((k, serialized_example))
+    result.extend((k, serialized_example)
+                  for serialized_example in coder.encode(record_batch))
   return result
 
 
@@ -161,7 +161,7 @@ def validate_examples_in_tfrecord(
 
 def _try_unwrap(maybe_collection):
   """If input is a collection of one item, return that, or return input."""
-  if isinstance(maybe_collection, str) or isinstance(maybe_collection, bytes):
+  if isinstance(maybe_collection, (str, bytes)):
     return maybe_collection
   try:
     if len(maybe_collection) == 1:
@@ -287,9 +287,10 @@ def validate_examples_in_csv(
     samples_per_reason_acc = collections.defaultdict(list)
     for reason, pandas_dataframe in sample_materializer.reader():
       samples_per_reason_acc[reason].append(pandas_dataframe)
-    samples_per_reason = {}
-    for reason, dataframes in samples_per_reason_acc.items():
-      samples_per_reason[reason] = pd.concat(dataframes)
+    samples_per_reason = {
+        reason: pd.concat(dataframes)
+        for reason, dataframes in samples_per_reason_acc.items()
+    }
     sample_materializer.cleanup()
     return stats_util.load_statistics(output_path), samples_per_reason
   return stats_util.load_statistics(output_path)

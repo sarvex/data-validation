@@ -205,15 +205,16 @@ def generate_statistics_from_dataframe(
     A DatasetFeatureStatisticsList proto.
   """
   if not isinstance(dataframe, DataFrame):
-    raise TypeError('dataframe argument is of type {}. Must be a '
-                    'pandas DataFrame.'.format(type(dataframe).__name__))
+    raise TypeError(
+        f'dataframe argument is of type {type(dataframe).__name__}. Must be a pandas DataFrame.'
+    )
 
   stats_generators = cast(
       List[stats_generator.CombinerStatsGenerator],
       stats_impl.get_generators(stats_options, in_memory=True))
   if n_jobs < -1 or n_jobs == 0:
-    raise ValueError('Invalid n_jobs parameter {}. Should be either '
-                     ' -1 or >= 1.'.format(n_jobs))
+    raise ValueError(
+        f'Invalid n_jobs parameter {n_jobs}. Should be either  -1 or >= 1.')
 
   if n_jobs == -1:
     n_jobs = multiprocessing.cpu_count()
@@ -294,16 +295,15 @@ def get_csv_header(data_location: Text,
   """
   matched_files = tf.io.gfile.glob(data_location)
   if not matched_files:
-    raise ValueError(
-        'No file found in the input data location: %s' % data_location)
+    raise ValueError(f'No file found in the input data location: {data_location}')
 
   # Read the header line in the first file.
   with tf.io.gfile.GFile(matched_files[0], 'r') as reader:
     try:
       result = next(csv.reader(reader, delimiter=delimiter))
     except StopIteration:
-      raise ValueError('Found empty file when reading the header line: %s' %
-                       matched_files[0])
+      raise ValueError(
+          f'Found empty file when reading the header line: {matched_files[0]}')
 
   # Make sure that all files have the same header.
   for filename in matched_files[1:]:
@@ -312,7 +312,6 @@ def get_csv_header(data_location: Text,
         if next(csv.reader(reader, delimiter=delimiter)) != result:
           raise ValueError('Files have different headers.')
       except StopIteration:
-        raise ValueError(
-            'Found empty file when reading the header line: %s' % filename)
+        raise ValueError(f'Found empty file when reading the header line: {filename}')
 
   return result

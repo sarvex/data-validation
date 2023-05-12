@@ -94,9 +94,9 @@ def get_feature_type_from_arrow_type(
   if pa.types.is_null(arrow_type):
     return None
   if not arrow_util.is_list_like(arrow_type):
-    raise TypeError('Expected feature column to be a '
-                    '(Large)List<primitive|struct> or null, but feature {} '
-                    'was {}.'.format(feature_path, arrow_type))
+    raise TypeError(
+        f'Expected feature column to be a (Large)List<primitive|struct> or null, but feature {feature_path} was {arrow_type}.'
+    )
 
   value_type = arrow_util.get_innermost_nested_type(arrow_type)
   if pa.types.is_integer(value_type):
@@ -110,8 +110,8 @@ def get_feature_type_from_arrow_type(
   elif pa.types.is_null(value_type):
     return None
 
-  raise TypeError('Feature {} has unsupported arrow type: {}'.format(
-      feature_path, arrow_type))
+  raise TypeError(
+      f'Feature {feature_path} has unsupported arrow type: {arrow_type}')
 
 
 def make_dataset_feature_stats_proto(
@@ -275,8 +275,8 @@ def get_feature_stats(stats: statistics_pb2.DatasetFeatureStatistics,
     if feature_path == types.FeaturePath.from_proto(feature_stats.path):
       return feature_stats
 
-  raise ValueError('Feature %s not found in the dataset statistics.' %
-                   feature_path)
+  raise ValueError(
+      f'Feature {feature_path} not found in the dataset statistics.')
 
 
 def get_custom_stats(
@@ -306,8 +306,9 @@ def get_custom_stats(
     if custom_stats.name == custom_stats_name:
       return getattr(custom_stats, custom_stats.WhichOneof('val'))
 
-  raise ValueError('Custom statistics %s not found in the feature statistics.' %
-                   custom_stats_name)
+  raise ValueError(
+      f'Custom statistics {custom_stats_name} not found in the feature statistics.'
+  )
 
 
 def get_slice_stats(statistics: statistics_pb2.DatasetFeatureStatisticsList,
@@ -350,7 +351,7 @@ def load_statistics(
     IOError: If the input path does not exist.
   """
   if not tf.io.gfile.exists(input_path):
-    raise IOError('Invalid input path {}.'.format(input_path))
+    raise IOError(f'Invalid input path {input_path}.')
   try:
     return load_stats_tfrecord(input_path)
   except Exception:  # pylint: disable=broad-except

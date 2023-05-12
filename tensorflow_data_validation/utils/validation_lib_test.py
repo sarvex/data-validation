@@ -295,17 +295,14 @@ class ValidationLibTest(parameterized.TestCase):
     if output_column_names:
       column_names = fields[0]
       fields = fields[1:]
-    records = []
-    for row in fields:
-      records.append(delimiter.join(row))
-
+    records = [delimiter.join(row) for row in fields]
     temp_dir = self.create_tempdir().full_path
     if not generate_single_file:
-      records_per_file = [records[0:1], records[1:]]
+      records_per_file = [records[:1], records[1:]]
     else:
       records_per_file = [records]
     for i, records in enumerate(records_per_file):
-      filepath = os.path.join(temp_dir, 'input_data_%s.csv' % i)
+      filepath = os.path.join(temp_dir, f'input_data_{i}.csv')
       with open(filepath, 'w+') as writer:
         for record in records:
           writer.write(record + '\n')

@@ -161,9 +161,7 @@ def mutual_information(
   # numpy array multiple times.
   final_mi, each = _mi_for_arrays(cf_list0, cf_list1, df_list0, df_list1,
                                   weights, k, estimate_method, seed)
-  if output_each:
-    return final_mi, each
-  return final_mi
+  return (final_mi, each) if output_each else final_mi
 
 
 def adjusted_mutual_information(
@@ -416,8 +414,9 @@ def _validate_args(
     seed: Optional[int]) -> None:
   """Validates the arguments of the function `mutual_information`."""
 
-  assert len(set(len(f) for f in feature_list0 + feature_list1)) == 1, (
-      'The features have different number of items.')
+  assert (len({len(f)
+               for f in feature_list0 + feature_list1
+               }) == 1), 'The features have different number of items.'
 
   assert len(is_categorical_list0) == len(feature_list0), (
       'is_categorical_list0 is not the same length as feature_list0.')
@@ -426,13 +425,12 @@ def _validate_args(
 
   assert isinstance(k, int) and k >= 3, 'k has to be an integer no less than 3.'
 
-  assert estimate_method in ['smaller_data', 'larger_data']
+  assert estimate_method in {'smaller_data', 'larger_data'}
 
   def assert_feature(f, f_name):
-    assert (f is None or isinstance(f, np.ndarray) and
-            len(f) == len(feature_list0[0])), (
-                '%s must be None or a feature with the same item number.' %
-                f_name)
+    assert (f is None
+            or isinstance(f, np.ndarray) and len(f) == len(feature_list0[0])
+            ), f'{f_name} must be None or a feature with the same item number.'
 
   assert_feature(weight_feature, 'weight_feature')
   assert_feature(filter_feature, 'filter_feature')
@@ -459,13 +457,12 @@ def _fill_missing_values(f: np.ndarray, is_categorical: bool) -> np.ndarray:
   Returns:
     np.ndarray.
   """
-  if is_categorical:
-    f = f.astype(object)
-    f[pd.isnull(f)] = np.nan
-    return f
-  else:
+  if not is_categorical:
     # Converting to np.float64 is necessary for getting smaller errors.
     return f.astype(float)
+  f = f.astype(object)
+  f[pd.isnull(f)] = np.nan
+  return f
 
 
 def _feature_list_to_numpy_arrays(
@@ -549,13 +546,7 @@ def _mi_high_dim_cc(arr0: np.ndarray, arr1: np.ndarray, k: int,
   nn.fit(arr)
   k_neighbors = nn.kneighbors()
 
-  if estimate_method == 'smaller_data':
-    # Use one radius for all features. Exclude the point on the boundary by
-    # taking a radius slightly smaller than the distance to the k-th nearest
-    # neighbor.
-    r = np.nextafter(k_neighbors[0][:, -1], 0).reshape((-1, 1))
-    radius = np.hstack([r, r])
-  elif estimate_method == 'larger_data':
+  if estimate_method == 'larger_data':
     # Treat arr0 and arr1 as two high dimensional features and each of them uses
     # its own projection of the radius. The idea is to look at the k nearest
     # neighbors and find the radius (largest distance) in the two sub-spaces
@@ -569,6 +560,12 @@ def _mi_high_dim_cc(arr0: np.ndarray, arr1: np.ndarray, k: int,
     r1 = np.max(r[:, m0:], axis=1).reshape((-1, 1))
     radius = np.hstack([r0, r1])
 
+  elif estimate_method == 'smaller_data':
+    # Use one radius for all features. Exclude the point on the boundary by
+    # taking a radius slightly smaller than the distance to the k-th nearest
+    # neighbor.
+    r = np.nextafter(k_neighbors[0][:, -1], 0).reshape((-1, 1))
+    radius = np.hstack([r, r])
   mi0, each0 = _process_high_dim(arr0, radius[:, 0], estimate_method, weights)
   mi1, each1 = _process_high_dim(arr1, radius[:, 1], estimate_method, weights)
   mi = (mi0 + mi1) / float(n_samples)

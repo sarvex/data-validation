@@ -38,7 +38,7 @@ def find_median(quantiles: np.ndarray) -> float:
   # We assume that we have at least one quantile boundary.
   assert num_quantiles > 0
 
-  median_index = int(num_quantiles / 2)
+  median_index = num_quantiles // 2
   if num_quantiles % 2 == 0:
     # If we have an even number of quantile boundaries, take the mean of the
     # middle boundaries to be the median.

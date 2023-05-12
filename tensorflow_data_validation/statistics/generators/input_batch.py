@@ -89,9 +89,9 @@ class InputBatch(object):
     for path in paths[1:]:
       path_mask = self.null_mask(path)
       if mask.size != path_mask.size:
-        raise ValueError('All array lengths must be equal. '
-                         'other_null_mask.size != null_mask({}).size '
-                         '({} != {}).'.format(path, mask.size, path_mask.size))
+        raise ValueError(
+            f'All array lengths must be equal. other_null_mask.size != null_mask({path}).size ({mask.size} != {path_mask.size}).'
+        )
       mask = mask & path_mask
     self._cache[key] = mask
     return mask
@@ -123,8 +123,8 @@ class InputBatch(object):
       if pa.types.is_null(array.type):
         lengths = np.full(self._record_batch.num_rows, 0)
       elif not arrow_util.is_list_like(array.type):
-        raise ValueError('Can only compute list lengths on list arrays, found '
-                         '{}'.format(array.type))
+        raise ValueError(
+            f'Can only compute list lengths on list arrays, found {array.type}')
       else:
         lengths = np.asarray(array_util.ListLengthsFromListArray(array))
     except KeyError:

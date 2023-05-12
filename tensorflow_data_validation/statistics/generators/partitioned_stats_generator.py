@@ -42,12 +42,12 @@ def _get_partitioned_statistics_summary(
   for feature_path, feature_statistics in statistics.items():
     summary_for_feature = summary[feature_path]
     for stat_name, stat_values in feature_statistics.items():
-      summary_for_feature['min_' + stat_name] = np.min(stat_values)
-      summary_for_feature['max_' + stat_name] = np.max(stat_values)
-      summary_for_feature['mean_' + stat_name] = np.mean(stat_values)
-      summary_for_feature['median_' + stat_name] = np.median(stat_values)
-      summary_for_feature['std_dev_' + stat_name] = np.std(stat_values)
-      summary_for_feature['num_partitions_' + stat_name] = stat_values.size
+      summary_for_feature[f'min_{stat_name}'] = np.min(stat_values)
+      summary_for_feature[f'max_{stat_name}'] = np.max(stat_values)
+      summary_for_feature[f'mean_{stat_name}'] = np.mean(stat_values)
+      summary_for_feature[f'median_{stat_name}'] = np.median(stat_values)
+      summary_for_feature[f'std_dev_{stat_name}'] = np.std(stat_values)
+      summary_for_feature[f'num_partitions_{stat_name}'] = stat_values.size
   return summary
 
 
@@ -404,10 +404,10 @@ class _SampleRecordBatchRows(beam.CombineFn):
 
     result = _SampleRecordBatchRowsAccumulator()
 
-    # Take and merge the record batches, based on the sampled indices.
-    rbs = []
-    for rb, indices in zip(accumulator.record_batches, sample_indices):
-      rbs.append(table_util.RecordBatchTake(rb, pa.array(indices)))
+    rbs = [
+        table_util.RecordBatchTake(rb, pa.array(indices))
+        for rb, indices in zip(accumulator.record_batches, sample_indices)
+    ]
     compressed_rb = table_util.MergeRecordBatches(rbs)
     result.record_batches = [compressed_rb]
     result.curr_num_rows = compressed_rb.num_rows

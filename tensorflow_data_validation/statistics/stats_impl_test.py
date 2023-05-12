@@ -2944,8 +2944,7 @@ def merge_shards(
 
   def _flatten(shards):
     for statistics_list in shards:
-      for dataset in statistics_list:
-        yield dataset
+      yield from statistics_list
 
   return stats_impl._merge_dataset_feature_stats_protos(_flatten(shards))
 
@@ -2970,10 +2969,7 @@ class StatsImplTest(parameterized.TestCase):
       result = (
           p | beam.Create(record_batches, reshuffle=False)
           | stats_impl.GenerateStatisticsImpl(options))
-      if expected_shards > 1:
-        merge_fn = merge_shards
-      else:
-        merge_fn = None
+      merge_fn = merge_shards if expected_shards > 1 else None
       util.assert_that(
           result,
           test_util.make_dataset_feature_stats_list_proto_equal_fn(
@@ -3613,13 +3609,12 @@ class StatsImplTest(parameterized.TestCase):
     }
 
     # Check each counter.
-    for counter_name in expected_result:
+    for counter_name, value in expected_result.items():
       actual_counter = result_metrics.query(
           beam.metrics.metric.MetricsFilter().with_name(counter_name)
           )['counters']
       self.assertLen(actual_counter, 1)
-      self.assertEqual(actual_counter[0].committed,
-                       expected_result[counter_name])
+      self.assertEqual(actual_counter[0].committed, value)
 
   def test_filter_features(self):
     input_record_batch = pa.RecordBatch.from_arrays([

@@ -68,12 +68,13 @@ def _get_categorical_feature_encoding(
     A dict where the key is the category and the value is an int which
       corresponds to the index of the encoding which the category maps to.
   """
-  categorical_feature_encoding = {}
-  for index, value in enumerate(
-      sorted(category_frequencies, key=category_frequencies.get,
-             reverse=True)[:max_encoding_length - 1]):
-    categorical_feature_encoding[value] = index
-  return categorical_feature_encoding
+  return {
+      value: index
+      for index, value in enumerate(
+          sorted(category_frequencies,
+                 key=category_frequencies.get,
+                 reverse=True)[:max_encoding_length - 1])
+  }
 
 
 def _apply_categorical_encoding_to_feature_array(
@@ -500,11 +501,11 @@ class MutualInformation(partitioned_stats_generator.PartitionedStatsFn):
     for feature_name, feature_array in zip(record_batch.schema.names,
                                            record_batch.columns):
       feature_path = types.FeaturePath([feature_name])
-      if (feature_path == self._label_feature and
-          self._label_feature in self._categorical_features and
-          self._label_feature not in self._multivalent_features):
-        if self._is_unique_array(feature_array):
-          return True
+      if (feature_path == self._label_feature
+          and self._label_feature in self._categorical_features
+          and self._label_feature not in self._multivalent_features
+          ) and self._is_unique_array(feature_array):
+        return True
     return False
 
   def compute(
@@ -623,7 +624,7 @@ class MutualInformation(partitioned_stats_generator.PartitionedStatsFn):
         continue
 
       # If a feature is always null, it cannot be predictive.
-      all_values_are_null = False if np.sum(~pd.isnull(feature_array)) else True
+      all_values_are_null = not np.sum(~pd.isnull(feature_array))
       if all_values_are_null:
         result[feature_column] = {self._custom_stats_key: 0.0}
         continue

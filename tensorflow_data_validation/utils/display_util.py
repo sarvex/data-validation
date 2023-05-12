@@ -75,8 +75,9 @@ def get_schema_dataframe(
     A tuple of DataFrames containing the features and domains of the schema.
   """
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
   # Extract all the string domains at the schema level.
   domain_rows = []
@@ -200,15 +201,15 @@ def get_anomalies_dataframe(anomalies: anomalies_pb2.Anomalies) -> pd.DataFrame:
     are no anomalies.
   """
   if not isinstance(anomalies, anomalies_pb2.Anomalies):
-    raise TypeError('anomalies is of type %s, should be an Anomalies proto.' %
-                    type(anomalies).__name__)
+    raise TypeError(
+        f'anomalies is of type {type(anomalies).__name__}, should be an Anomalies proto.'
+    )
 
-  anomaly_rows = []
-  for feature_name, anomaly_info in anomalies.anomaly_info.items():
-    anomaly_rows.append([
-        _add_quotes(feature_name), anomaly_info.short_description,
-        anomaly_info.description
-    ])
+  anomaly_rows = [[
+      _add_quotes(feature_name),
+      anomaly_info.short_description,
+      anomaly_info.description,
+  ] for feature_name, anomaly_info in anomalies.anomaly_info.items()]
   if anomalies.HasField('dataset_anomaly_info'):
     anomaly_rows.append([
         '[dataset anomaly]', anomalies.dataset_anomaly_info.short_description,
@@ -380,10 +381,7 @@ def get_statistics_html(
            facets_iframe.setAttribute('height', facets_iframe.contentWindow.document.body.offsetHeight + 'px')
          }, 1500)
          </script>"""
-  # pylint: enable=line-too-long
-  html = html_template.replace('protostr', protostr)
-
-  return html
+  return html_template.replace('protostr', protostr)
 
 
 def visualize_statistics(
@@ -488,21 +486,21 @@ def get_natural_language_statistics_dataframes(
                                                  lhs_name, rhs_name,
                                                  allowlist_features,
                                                  denylist_features)
-  nlp_stats = _get_natural_language_statistics(combined_statistics)
-  if not nlp_stats:
+  if nlp_stats := _get_natural_language_statistics(combined_statistics):
+    return {
+        ds_name: {
+            feature_name: {
+                'token_length_histogram':
+                _get_histogram_dataframe(nlp_stat.token_length_histogram),
+                'token_statistics':
+                _get_token_statistics(list(nlp_stat.token_statistics)),
+            }
+            for feature_name, nlp_stat in features_dict.items()
+        }
+        for ds_name, features_dict in nlp_stats.items()
+    }
+  else:
     return None
-
-  result = {}
-  for ds_name, features_dict in nlp_stats.items():
-    result[ds_name] = {}
-    for feature_name, nlp_stat in features_dict.items():
-      result[ds_name][feature_name] = {
-          'token_length_histogram':
-              _get_histogram_dataframe(nlp_stat.token_length_histogram),
-          'token_statistics':
-              _get_token_statistics(list(nlp_stat.token_statistics))
-      }
-  return result
 
 
 def _get_natural_language_statistics(

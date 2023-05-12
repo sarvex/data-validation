@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for anomalies_util."""
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -33,15 +34,12 @@ FLAGS = flags.FLAGS
 
 SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
     {
-        'testcase_name':
-            'single_reason_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
-                anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES
-            ]),
-        'input_anomalies_proto_text':
-            """
+        'testcase_name': 'single_reason_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
+            anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES,
+        },
+        'input_anomalies_proto_text': """
              anomaly_info {
                key: "feature_1"
                value {
@@ -57,15 +55,15 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                   }
                 }
               }""",
-        'expected_anomalies_proto_text': ''
+        'expected_anomalies_proto_text': '',
     },
     {
         'testcase_name':
-            'multiple_reasons_some_removed',
+        'multiple_reasons_some_removed',
         'anomaly_types_to_remove':
-            set([anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING]),
+        {anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING},
         'input_anomalies_proto_text':
-            """
+        """
             anomaly_info {
               key: "feature_1"
               value {
@@ -87,7 +85,7 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                }
              }""",
         'expected_anomalies_proto_text':
-            """
+        """
             anomaly_info {
               key: "feature_1"
               value {
@@ -102,18 +100,15 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                      "schema."
                  }
                }
-             }"""
+             }""",
     },
     {
-        'testcase_name':
-            'multiple_reasons_all_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING,
-                anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES,
-            ]),
-        'input_anomalies_proto_text':
-            """
+        'testcase_name': 'multiple_reasons_all_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING,
+            anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES,
+        },
+        'input_anomalies_proto_text': """
             anomaly_info {
               key: "feature_1"
               value {
@@ -134,16 +129,15 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                  }
                }
              }""",
-        'expected_anomalies_proto_text': ''
+        'expected_anomalies_proto_text': '',
     },
     {
         'testcase_name':
-            'multiple_features_some_reasons_removed',
+        'multiple_features_some_reasons_removed',
         'anomaly_types_to_remove':
-            set(
-                [anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES]),
+        {anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES},
         'input_anomalies_proto_text':
-            """
+        """
              anomaly_info {
                key: "feature_1"
                value {
@@ -179,7 +173,7 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
               }
             }""",
         'expected_anomalies_proto_text':
-            """
+        """
              anomaly_info {
                key: "feature_1"
                value {
@@ -192,18 +186,15 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                     description: "Expected bytes but got string."
                  }
               }
-            }"""
+            }""",
     },
     {
-        'testcase_name':
-            'multiple_features_all_reasons_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING,
-                anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES
-            ]),
-        'input_anomalies_proto_text':
-            """
+        'testcase_name': 'multiple_features_all_reasons_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING,
+            anomalies_pb2.AnomalyInfo.ENUM_TYPE_UNEXPECTED_STRING_VALUES,
+        },
+        'input_anomalies_proto_text': """
              anomaly_info {
                key: "feature_1"
                value {
@@ -238,21 +229,20 @@ SET_REMOVE_ANOMALY_TYPES_CHANGES_PROTO_TESTS = [
                 }
               }
             }""",
-        'expected_anomalies_proto_text': ''
-    }
+        'expected_anomalies_proto_text': '',
+    },
 ]
 
 SET_REMOVE_ANOMALY_TYPES_DOES_NOT_CHANGE_PROTO_TESTS = [
     {
         'testcase_name':
-            'single_reason_not_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT
-            ]),
+        'single_reason_not_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT,
+        },
         'input_anomalies_proto_text':
-            """
+        """
              anomaly_info {
                key: "feature_1"
                value {
@@ -267,18 +257,17 @@ SET_REMOVE_ANOMALY_TYPES_DOES_NOT_CHANGE_PROTO_TESTS = [
                       "schema."
                   }
                 }
-              }"""
+              }""",
     },
     {
         'testcase_name':
-            'multiple_reasons_not_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT
-            ]),
+        'multiple_reasons_not_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT,
+        },
         'input_anomalies_proto_text':
-            """
+        """
              anomaly_info {
                key: "feature_1"
                value {
@@ -298,18 +287,17 @@ SET_REMOVE_ANOMALY_TYPES_DOES_NOT_CHANGE_PROTO_TESTS = [
                       "schema."
                   }
                 }
-              }"""
+              }""",
     },
     {
         'testcase_name':
-            'multiple_features_no_reasons_removed',
-        'anomaly_types_to_remove':
-            set([
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
-                anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT
-            ]),
+        'multiple_features_no_reasons_removed',
+        'anomaly_types_to_remove': {
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_LOW_NUMBER_PRESENT,
+            anomalies_pb2.AnomalyInfo.FEATURE_TYPE_NOT_PRESENT,
+        },
         'input_anomalies_proto_text':
-            """
+        """
              anomaly_info {
                key: "feature_1"
                value {
@@ -337,8 +325,8 @@ SET_REMOVE_ANOMALY_TYPES_DOES_NOT_CHANGE_PROTO_TESTS = [
                        "schema."
                    }
                 }
-              }"""
-    }
+              }""",
+    },
 ]
 ANOMALIES_SLICER_TESTS = [
     {
@@ -439,9 +427,9 @@ class AnomaliesUtilTest(parameterized.TestCase):
                              expected_anomalies_proto)
 
   def test_remove_anomaly_types_removes_diff_regions(self):
-    anomaly_types_to_remove = set([
-        anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING,
-    ])
+    anomaly_types_to_remove = {
+        anomalies_pb2.AnomalyInfo.ENUM_TYPE_BYTES_NOT_STRING
+    }
     # The anomaly_info has multiple diff regions.
     anomalies = text_format.Parse(
         """

@@ -67,14 +67,13 @@ def DecodedExamplesToRecordBatch(
     if pa.types.is_null(array.type):
       continue
     if not arrow_util.is_list_like(array.type):
-      raise TypeError("Expected list arrays for field {} but got {}".format(
-          name, array.type))
+      raise TypeError(f"Expected list arrays for field {name} but got {array.type}")
     value_type = array.type.value_type
     if (not pa.types.is_integer(value_type) and
         not pa.types.is_floating(value_type) and
         not arrow_util.is_binary_like(value_type) and
         not pa.types.is_null(value_type)):
-      raise TypeError("Type not supported: {} {}".format(name, array.type))
+      raise TypeError(f"Type not supported: {name} {array.type}")
 
   return pa.RecordBatch.from_arrays(value_arrays, field_names)
 

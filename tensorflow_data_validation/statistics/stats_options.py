@@ -276,8 +276,9 @@ class StatsOptions(object):
       self, generators: Optional[List[stats_generator.StatsGenerator]]) -> None:
     if generators is not None:
       if not isinstance(generators, list):
-        raise TypeError('generators is of type %s, should be a list.' %
-                        type(generators).__name__)
+        raise TypeError(
+            f'generators is of type {type(generators).__name__}, should be a list.'
+        )
       for generator in generators:
         if not isinstance(generator, (
             stats_generator.CombinerStatsGenerator,
@@ -300,8 +301,9 @@ class StatsOptions(object):
       self, feature_allowlist: Optional[List[types.FeatureName]]) -> None:
     if feature_allowlist is not None and not isinstance(feature_allowlist,
                                                         list):
-      raise TypeError('feature_allowlist is of type %s, should be a list.' %
-                      type(feature_allowlist).__name__)
+      raise TypeError(
+          f'feature_allowlist is of type {type(feature_allowlist).__name__}, should be a list.'
+      )
     self._feature_allowlist = feature_allowlist
 
   @property
@@ -311,8 +313,9 @@ class StatsOptions(object):
   @schema.setter
   def schema(self, schema: Optional[schema_pb2.Schema]) -> None:
     if schema is not None and not isinstance(schema, schema_pb2.Schema):
-      raise TypeError('schema is of type %s, should be a Schema proto.' %
-                      type(schema).__name__)
+      raise TypeError(
+          f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+      )
     self._schema = schema
 
   @property
@@ -324,8 +327,9 @@ class StatsOptions(object):
       self, vocab_paths: Optional[Dict[types.VocabName,
                                        types.VocabPath]]) -> None:
     if vocab_paths is not None and not isinstance(vocab_paths, dict):
-      raise TypeError('vocab_paths is of type %s, should be a dict.' %
-                      type(vocab_paths).__name__)
+      raise TypeError(
+          f'vocab_paths is of type {type(vocab_paths).__name__}, should be a dict.'
+      )
     self._vocab_paths = vocab_paths
 
   @property
@@ -340,8 +344,8 @@ class StatsOptions(object):
     if slice_functions is not None:
       if not isinstance(slice_functions, list):
         raise TypeError(
-            'experimental_slice_functions is of type %s, should be a list.' %
-            type(slice_functions).__name__)
+            f'experimental_slice_functions is of type {type(slice_functions).__name__}, should be a list.'
+        )
       for slice_function in slice_functions:
         if not isinstance(slice_function, python_types.FunctionType):
           raise TypeError(
@@ -367,9 +371,8 @@ class StatsOptions(object):
 
   @sample_rate.setter
   def sample_rate(self, sample_rate: Optional[float]):
-    if sample_rate is not None:
-      if not 0 < sample_rate <= 1:
-        raise ValueError('Invalid sample_rate %f' % sample_rate)
+    if sample_rate is not None and not 0 < sample_rate <= 1:
+      raise ValueError('Invalid sample_rate %f' % sample_rate)
     self._sample_rate = sample_rate
 
   @property
@@ -428,10 +431,10 @@ class StatsOptions(object):
   @semantic_domain_stats_sample_rate.setter
   def semantic_domain_stats_sample_rate(
       self, semantic_domain_stats_sample_rate: Optional[float]):
-    if semantic_domain_stats_sample_rate is not None:
-      if not 0 < semantic_domain_stats_sample_rate <= 1:
-        raise ValueError('Invalid semantic_domain_stats_sample_rate %f'
-                         % semantic_domain_stats_sample_rate)
+    if (semantic_domain_stats_sample_rate is not None
+        and not 0 < semantic_domain_stats_sample_rate <= 1):
+      raise ValueError('Invalid semantic_domain_stats_sample_rate %f'
+                       % semantic_domain_stats_sample_rate)
     self._semantic_domain_stats_sample_rate = semantic_domain_stats_sample_rate
 
   @property
@@ -473,8 +476,8 @@ class StatsOptions(object):
       self._experimental_output_type = output_type
     else:
       raise ValueError(
-          'Unsupported output type %s. Must be one of binary_pb, tfrecords.' %
-          output_type)
+          f'Unsupported output type {output_type}. Must be one of binary_pb, tfrecords.'
+      )
 
 
 def _validate_sql(sql_query: Text, schema: schema_pb2.Schema):
@@ -483,9 +486,10 @@ def _validate_sql(sql_query: Text, schema: schema_pb2.Schema):
   formatted_query = slicing_util.format_slice_sql_query(sql_query)
   try:
     sql_util.RecordBatchSQLSliceQuery(formatted_query, arrow_schema)
-  except Exception as e:  # pylint: disable=broad-except
-    raise ValueError('One of the slice SQL query %s raised an exception: %s.'
-                     % (sql_query, repr(e)))
+  except Exception as e:# pylint: disable=broad-except
+    raise ValueError(
+        f'One of the slice SQL query {sql_query} raised an exception: {repr(e)}.'
+    )
 
 
 def _validate_slicing_options(

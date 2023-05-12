@@ -28,9 +28,7 @@ class MaterializerTest(absltest.TestCase):
     materializer = io_util.Materializer(temp_dir)
     with beam.Pipeline() as p:
       _ = p | beam.Create(values) | materializer.writer()
-    got_values = []
-    for val in materializer.reader():
-      got_values.append(val)
+    got_values = list(materializer.reader())
     self.assertCountEqual(values, got_values)
 
   def test_cleanup(self):
@@ -51,9 +49,7 @@ class MaterializerTest(absltest.TestCase):
       values = ['abcd', 91, {'x': 'y'}]
       with beam.Pipeline() as p:
         _ = p | beam.Create(values) | materializer.writer()
-      got_values = []
-      for val in materializer.reader():
-        got_values.append(val)
+      got_values = list(materializer.reader())
     self.assertCountEqual(values, got_values)
     self.assertEmpty(materializer._output_files())
 

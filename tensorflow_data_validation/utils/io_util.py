@@ -89,7 +89,7 @@ class Materializer(object):
 
   def __init__(self, output_dir: str):
     self._output_path = os.path.join(
-        output_dir, "%s_tmp_materialized.tfrecords" % uuid.uuid4())
+        output_dir, f"{uuid.uuid4()}_tmp_materialized.tfrecords")
     self._deleted = False
 
   def __enter__(self):
@@ -110,7 +110,7 @@ class Materializer(object):
     # pylint: enable=no-value-for-parameter
 
   def _output_files(self) -> List[Union[bytes, str]]:
-    return tf.io.gfile.glob(self._output_path + "-*-of-*")
+    return tf.io.gfile.glob(f"{self._output_path}-*-of-*")
 
   def reader(self) -> Iterator[Any]:
     """Get an iterator over output written to writer().

@@ -42,7 +42,7 @@ def load_vocab(path: Text) -> Tuple[Dict[Text, int], Dict[int, Text]]:
   reverse_vocab = {}
 
   if not tf.io.gfile.exists(path):
-    raise ValueError('Vocabulary path: %s does not exist' % path)
+    raise ValueError(f'Vocabulary path: {path} does not exist')
 
   def populate_entry(index, entry):
     entry = six.ensure_text(entry).strip()

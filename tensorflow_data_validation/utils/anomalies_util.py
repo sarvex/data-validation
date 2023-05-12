@@ -99,9 +99,10 @@ def get_anomalies_slicer(
   def slice_fn(example: pa.RecordBatch) -> Iterable[types.SlicedRecordBatch]:
     for feature_name, anomaly_info in anomalies.anomaly_info.items():
       for anomaly_reason in anomaly_info.reason:
-        yield (feature_name + '_' +
-               anomalies_pb2.AnomalyInfo.Type.Name(anomaly_reason.type),
-               example)
+        yield (
+            f'{feature_name}_{anomalies_pb2.AnomalyInfo.Type.Name(anomaly_reason.type)}',
+            example,
+        )
 
   return slice_fn
 
@@ -119,8 +120,8 @@ def write_anomalies_text(anomalies: anomalies_pb2.Anomalies,
   """
   if not isinstance(anomalies, anomalies_pb2.Anomalies):
     raise TypeError(
-        'anomalies is of type %s; should be an Anomalies proto.' %
-        type(anomalies).__name__)
+        f'anomalies is of type {type(anomalies).__name__}; should be an Anomalies proto.'
+    )
 
   anomalies_text = text_format.MessageToString(anomalies)
   io_util.write_string_to_file(output_path, anomalies_text)

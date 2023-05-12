@@ -63,8 +63,9 @@ class DecodeCSV(beam.PTransform):
       secondary_delimiter: Delimiter used for parsing multivalent columns.
     """
     if not isinstance(column_names, list):
-      raise TypeError('column_names is of type %s, should be a list' %
-                      type(column_names).__name__)
+      raise TypeError(
+          f'column_names is of type {type(column_names).__name__}, should be a list'
+      )
 
     self._column_names = column_names
     self._delimiter = delimiter

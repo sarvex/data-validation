@@ -113,14 +113,11 @@ class TopKUniquesCombinerStatsGenerator(
       return True
     if top_k_uniques_stats_util.output_categorical_numeric(
         self._categorical_numeric_types, feature_path, feature_type):
-      # This top-k uniques generator implementation only supports categorical
-      # INT.
       if feature_type == statistics_pb2.FeatureNameStatistics.INT:
         return True
-      else:
-        logging.error(('Categorical float feature %s not supported for '
-                       'TopKUniquesCombinerStatsGenerator'), feature_path)
-        return False
+      logging.error(('Categorical float feature %s not supported for '
+                     'TopKUniquesCombinerStatsGenerator'), feature_path)
+      return False
     return False
 
   def add_input(

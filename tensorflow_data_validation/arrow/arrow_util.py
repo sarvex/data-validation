@@ -41,18 +41,19 @@ def get_weight_feature(input_record_batch: pa.RecordBatch,
   """
   weights_field_index = input_record_batch.schema.get_field_index(weight_column)
   if weights_field_index < 0:
-    raise ValueError('Weight column "{}" not present in the input '
-                     'record batch.'.format(weight_column))
+    raise ValueError(
+        f'Weight column "{weight_column}" not present in the input record batch.'
+    )
   weights = input_record_batch.column(weights_field_index)
 
   if pa.types.is_null(weights.type):
-    raise ValueError('Weight column "{}" cannot be null.'.format(weight_column))
+    raise ValueError(f'Weight column "{weight_column}" cannot be null.')
   # Before flattening, check that there is a single value for each example.
   weight_lengths = array_util.ListLengthsFromListArray(weights).to_numpy()
   if not np.all(weight_lengths == 1):
     raise ValueError(
-        'Weight column "{}" must have exactly one value in each example.'
-        .format(weight_column))
+        f'Weight column "{weight_column}" must have exactly one value in each example.'
+    )
   flat_weights = weights.flatten()
   # Before converting to numpy view, check the type (cannot convert string and
   # binary arrays to numpy view).
@@ -60,8 +61,8 @@ def get_weight_feature(input_record_batch: pa.RecordBatch,
   if (not pa.types.is_floating(flat_weights_type) and
       not pa.types.is_integer(flat_weights_type)):
     raise ValueError(
-        'Weight column "{}" must be of numeric type. Found {}.'.format(
-            weight_column, flat_weights_type))
+        f'Weight column "{weight_column}" must be of numeric type. Found {flat_weights_type}.'
+    )
   return np.asarray(flat_weights)
 
 
@@ -415,5 +416,5 @@ def get_column(record_batch: pa.RecordBatch,
   if idx < 0:
     if missing_ok:
       return None
-    raise KeyError('missing column %s' % feature_name)
+    raise KeyError(f'missing column {feature_name}')
   return record_batch.column(idx)

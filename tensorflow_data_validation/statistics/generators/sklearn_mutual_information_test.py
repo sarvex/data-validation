@@ -251,9 +251,9 @@ class SkLearnMutualInformationTest(absltest.TestCase):
 
     # Create labels where first n items are [0, 1.0),
     # next n items are [1.0, 2.0), and last n items are [2.0, 3.0).
-    label = [np.random.rand() for i in range(n)] + [
-        np.random.rand() + 1 for i in range(n)
-    ] + [np.random.rand() + 2 for i in range(n)]
+    label = ([np.random.rand() for _ in range(n)] +
+             [np.random.rand() + 1
+              for _ in range(n)]) + [np.random.rand() + 2 for _ in range(n)]
 
     # A categorical feature that maps directly on to the label.
     feat = ["Red"] * n + ["Blue"] * n + ["Green"] * n

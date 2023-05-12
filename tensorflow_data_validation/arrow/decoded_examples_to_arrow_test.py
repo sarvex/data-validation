@@ -193,7 +193,8 @@ class DecodedExamplesToArrowPyTest(parameterized.TestCase):
       actual = arrow_util.get_column(record_batch, feature_name)
       self.assertTrue(
           expected_arrow_array.equals(actual),
-          "{} vs {}".format(expected_arrow_array, actual))
+          f"{expected_arrow_array} vs {actual}",
+      )
 
   def test_conversion_empty_input(self):
     record_batch = decoded_examples_to_arrow.DecodedExamplesToRecordBatch([])

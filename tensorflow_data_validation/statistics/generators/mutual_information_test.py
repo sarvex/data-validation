@@ -63,8 +63,8 @@ class EncodeExamplesTest(absltest.TestCase):
         types.FeaturePath(["fb"]): [[1], [2], [None]]
     }
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     set([types.FeaturePath(["fa"])]))
+                                     {types.FeaturePath(["fa"])},
+                                     {types.FeaturePath(["fa"])})
 
   def test_encoder_feature_excluded(self):
     batch = pa.RecordBatch.from_arrays([
@@ -74,10 +74,13 @@ class EncodeExamplesTest(absltest.TestCase):
     expected = {
         types.FeaturePath(["fa"]): [[3, 1], [None, None], [0, 1]],
     }
-    self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     set([types.FeaturePath(["fa"])]),
-                                     set([types.FeaturePath(["fb"])]))
+    self.assert_encoder_output_equal(
+        batch,
+        expected,
+        {types.FeaturePath(["fa"])},
+        {types.FeaturePath(["fa"])},
+        {types.FeaturePath(["fb"])},
+    )
 
   def test_encoder_multivalent_numerical_with_nulls(self):
     batch = pa.RecordBatch.from_arrays(
@@ -87,8 +90,7 @@ class EncodeExamplesTest(absltest.TestCase):
                                     [None, None, None]]
     }
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     EMPTY_SET)
+                                     {types.FeaturePath(["fa"])}, EMPTY_SET)
 
   def test_encoder_univalent_with_nulls(self):
     batch = pa.RecordBatch.from_arrays(
@@ -114,15 +116,15 @@ class EncodeExamplesTest(absltest.TestCase):
                                     [1, 1, 0], [1, 0, 0]]
     }
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     set([types.FeaturePath(["fa"])]))
+                                     {types.FeaturePath(["fa"])},
+                                     {types.FeaturePath(["fa"])})
 
   def test_encoder_multivalent_categorical_missing(self):
     batch = pa.RecordBatch.from_arrays([pa.array([None, None])], ["fa"])
     expected = {types.FeaturePath(["fa"]): []}
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     set([types.FeaturePath(["fa"])]))
+                                     {types.FeaturePath(["fa"])},
+                                     {types.FeaturePath(["fa"])})
 
   def test_encoder_multivalent_numeric(self):
     batch = pa.RecordBatch.from_arrays(
@@ -132,8 +134,7 @@ class EncodeExamplesTest(absltest.TestCase):
                                     [1, 1, 0], [1, 3, 0]]
     }
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     EMPTY_SET)
+                                     {types.FeaturePath(["fa"])}, EMPTY_SET)
 
   def test_encoder_multivalent_categorical_all_empty(self):
     label_array = pa.array([[0.1], [0.2], [0.7], [0.7]])
@@ -148,8 +149,11 @@ class EncodeExamplesTest(absltest.TestCase):
         types.FeaturePath(["label_key"]): [[0.1], [0.2], [0.7], [0.7]]
     }
     self.assert_encoder_output_equal(
-        batch, expected, set([types.FeaturePath(["empty_feature"])]),
-        set([types.FeaturePath(["empty_feature"])]))
+        batch,
+        expected,
+        {types.FeaturePath(["empty_feature"])},
+        {types.FeaturePath(["empty_feature"])},
+    )
 
   def test_encoder_multivalent_numerical_all_empty(self):
     label_array = pa.array([[0.1], [0.2], [0.7], [0.7]])
@@ -163,22 +167,21 @@ class EncodeExamplesTest(absltest.TestCase):
                                                [None, None, None]],
         types.FeaturePath(["label_key"]): [[0.1], [0.2], [0.7], [0.7]]
     }
-    self.assert_encoder_output_equal(
-        batch, expected, set([types.FeaturePath(["empty_feature"])]), EMPTY_SET)
+    self.assert_encoder_output_equal(batch, expected,
+                                     {types.FeaturePath(["empty_feature"])},
+                                     EMPTY_SET)
 
   def test_encoder_multivalent_numeric_missing(self):
     batch = pa.RecordBatch.from_arrays([pa.array([None, None])], ["fa"])
     expected = {types.FeaturePath(["fa"]): []}
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     EMPTY_SET)
+                                     {types.FeaturePath(["fa"])}, EMPTY_SET)
 
   def test_encoder_multivalent_numeric_too_large(self):
     batch = pa.RecordBatch.from_arrays([pa.array([2**53 + 1])], ["fa"])
     expected = {}
     self.assert_encoder_output_equal(batch, expected,
-                                     set([types.FeaturePath(["fa"])]),
-                                     EMPTY_SET)
+                                     {types.FeaturePath(["fa"])}, EMPTY_SET)
 
 
 class MutualInformationTest(absltest.TestCase):
@@ -756,9 +759,9 @@ class MutualInformationTest(absltest.TestCase):
 
     # Create labels where first n items are [0, 1.0),
     # next n items are [1.0, 2.0), and last n items are [2.0, 3.0).
-    label = [np.random.rand() for i in range(n)] + [
-        np.random.rand() + 1 for i in range(n)
-    ] + [np.random.rand() + 2 for i in range(n)]
+    label = ([np.random.rand() for _ in range(n)] +
+             [np.random.rand() + 1
+              for _ in range(n)]) + [np.random.rand() + 2 for _ in range(n)]
 
     # A categorical feature that maps directly on to the label.
     feat = ["Red"] * n + ["Blue"] * n + ["Green"] * n
@@ -1539,9 +1542,8 @@ class NonStreamingCustomStatsGeneratorTest(
   def test_ranklab_mi_with_slicing(self):
     sliced_record_batches = []
     for slice_key in ["slice1", "slice2"]:
-      for record_batch in self.record_batches:
-        sliced_record_batches.append((slice_key, record_batch))
-
+      sliced_record_batches.extend(
+          (slice_key, record_batch) for record_batch in self.record_batches)
     expected_result = [("slice1",
                         _get_test_stats_with_mi([
                             types.FeaturePath(["fa"]),

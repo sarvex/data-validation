@@ -216,11 +216,7 @@ def _update_accumulator_reported_sequences(accumulator: _PartialNLStats,
   ]
 
   coverage = (float(len(token_lens)) / len(resolved_entry))
-  if token_lens:
-    avg_token_len = float(sum(token_lens)) / len(token_lens)
-  else:
-    avg_token_len = 0
-
+  avg_token_len = float(sum(token_lens)) / len(token_lens) if token_lens else 0
   for attr, metric in [('reported_sequences_coverage', coverage),
                        ('reported_sequences_avg_token_length', avg_token_len)]:
     cur_list = getattr(accumulator, attr)
@@ -308,13 +304,12 @@ def _compute_int_statistics(
     if entry in excluded_int_tokens:
       continue
     # Vocabulary exists.
-    if rvocab is not None:
-      if entry in rvocab:
-        entry_str = rvocab[entry]
-        if entry_str in excluded_string_tokens:
-          continue
-        if entry_str not in oov_string_tokens:
-          filtered_entry_str_list.append(entry_str)
+    if rvocab is not None and entry in rvocab:
+      entry_str = rvocab[entry]
+      if entry_str in excluded_string_tokens:
+        continue
+      if entry_str not in oov_string_tokens:
+        filtered_entry_str_list.append(entry_str)
     accumulator.total_num_tokens += 1
   if filtered_entry_str_list:
     _update_accumulator_with_in_vocab_string_tokens(accumulator,
@@ -366,9 +361,7 @@ def _populate_token_length_histogram(
   """Populate the token length histogram."""
   quantiles = accumulator.vocab_token_length_quantiles.GetQuantiles(
       num_quantiles_histogram_buckets)
-  quantiles = quantiles.flatten().to_pylist()
-
-  if quantiles:
+  if quantiles := quantiles.flatten().to_pylist():
     quantiles_histogram = quantiles_util.generate_quantiles_histogram(
         quantiles, accumulator.num_in_vocab_tokens,
         num_quantiles_histogram_buckets)
@@ -381,9 +374,7 @@ def _populate_sequence_length_histogram(
   """Populate sequence length histogram."""
   quantiles = accumulator.sequence_length_quantiles.GetQuantiles(
       num_quantiles_histogram_buckets)
-  quantiles = quantiles.flatten().to_pylist()
-
-  if quantiles:
+  if quantiles := quantiles.flatten().to_pylist():
     quantiles_histogram = quantiles_util.generate_quantiles_histogram(
         quantiles, accumulator.num_examples, num_quantiles_histogram_buckets)
     nls.sequence_length_histogram.CopyFrom(quantiles_histogram)

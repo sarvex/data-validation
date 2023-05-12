@@ -270,10 +270,7 @@ class StatsGenTest(parameterized.TestCase):
     fields = [['feature1', 'feature2'], ['1.0', 'aa'], ['2.0', 'bb'],
               ['3.0', 'cc'], ['4.0', 'dd'], ['5.0', 'ee'], ['6.0', 'ff'],
               ['7.0', 'gg'], ['', '']]
-    records = []
-    for row in fields:
-      records.append(delimiter.join(row))
-
+    records = [delimiter.join(row) for row in fields]
     expected_result = text_format.Parse(
         """
     datasets {
@@ -452,7 +449,7 @@ class StatsGenTest(parameterized.TestCase):
                                                      with_header=True)
     header = records.pop(0)
     # Split the records into two subsets and write to separate files.
-    records1 = [header] + records[0:3]
+    records1 = [header] + records[:3]
     records2 = [header] + records[3:]
     tmp_dir = self._get_temp_dir()
     self._write_records_to_csv(records1, tmp_dir, 'input_data1.csv')
@@ -539,7 +536,7 @@ class StatsGenTest(parameterized.TestCase):
                                        with_header=True)
     header = records.pop(0)
     # Split the records into two subsets and write to separate files.
-    records1 = [header] + records[0:3]
+    records1 = [header] + records[:3]
     records2 = ['random,header'] + records[3:]
     tmp_dir = self._get_temp_dir()
     self._write_records_to_csv(records1, tmp_dir, 'input_data1.csv')

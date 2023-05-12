@@ -176,9 +176,8 @@ class _PartialCommonStats(object):
       other_nest_level = len(other.presence_and_valency_stats)
       if this_nest_level != other_nest_level:
         raise ValueError(
-            'Unable to merge common stats with different nest levels for '
-            'feature {}: {} vs {}'.format(
-                feature_path, this_nest_level, other_nest_level))
+            f'Unable to merge common stats with different nest levels for feature {feature_path}: {this_nest_level} vs {other_nest_level}'
+        )
       for self_stats, other_stats in zip(self.presence_and_valency_stats,
                                          other.presence_and_valency_stats):
         self_stats.merge_with(other_stats)
@@ -214,8 +213,9 @@ class _PartialCommonStats(object):
           for _ in range(nest_level)
       ]
     elif nest_level != len(self.presence_and_valency_stats):
-      raise ValueError('Inconsistent nestedness in feature {}: {} vs {}'.format(
-          feature_path, nest_level, len(self.presence_and_valency_stats)))
+      raise ValueError(
+          f'Inconsistent nestedness in feature {feature_path}: {nest_level} vs {len(self.presence_and_valency_stats)}'
+      )
 
     # And there's nothing we can collect in this case.
     if not feature_array:
@@ -755,7 +755,7 @@ def _make_num_values_custom_stats_proto(
         num_values_quantiles, parent_presence_and_valency.num_non_missing,
         num_histogram_buckets)
     proto = statistics_pb2.CustomStatistic()
-    proto.name = 'level_{}_value_list_length'.format(level)
+    proto.name = f'level_{level}_value_list_length'
     proto.histogram.CopyFrom(histogram)
     result.append(proto)
   return result
@@ -912,23 +912,19 @@ def _update_tfdv_telemetry(accumulator: '_BasicAcctype') -> None:
     type_str = statistics_pb2.FeatureNameStatistics.Type.Name(
         feature_type).lower()
     type_metrics = metrics[feature_type]
-    counter(
-        constants.METRICS_NAMESPACE,
-        'num_' + type_str + '_feature_values').inc(
-            int(type_metrics.num_non_missing))
+    counter(constants.METRICS_NAMESPACE, f'num_{type_str}_feature_values').inc(
+        int(type_metrics.num_non_missing))
     if type_metrics.num_non_missing > 0:
-      counter(
-          constants.METRICS_NAMESPACE,
-          type_str + '_feature_values_min_count').inc(
-              int(type_metrics.min_value_count))
-      counter(
-          constants.METRICS_NAMESPACE,
-          type_str + '_feature_values_max_count').inc(
-              int(type_metrics.max_value_count))
-      counter(
-          constants.METRICS_NAMESPACE,
-          type_str + '_feature_values_mean_count').inc(
-              int(type_metrics.total_num_values / type_metrics.num_non_missing))
+      counter(constants.METRICS_NAMESPACE,
+              f'{type_str}_feature_values_min_count').inc(
+                  int(type_metrics.min_value_count))
+      counter(constants.METRICS_NAMESPACE,
+              f'{type_str}_feature_values_max_count').inc(
+                  int(type_metrics.max_value_count))
+      counter(constants.METRICS_NAMESPACE,
+              f'{type_str}_feature_values_mean_count').inc(
+                  int(type_metrics.total_num_values /
+                      type_metrics.num_non_missing))
 
 
 # Currently we construct the equi-width histogram by using the
@@ -1034,10 +1030,8 @@ class BasicStatsGenerator(stats_generator.CombinerStatsGenerator):
   def add_input(self, accumulator: _BasicAcctype,
                 examples: pa.RecordBatch) -> _BasicAcctype:
     accumulator.num_examples += examples.num_rows
-    # Get the default weight, if it exists. This is always the weight we use
-    # for weighted num examples.
-    maybe_weight_feature = self._example_weight_map.get(types.FeaturePath([]))
-    if maybe_weight_feature:
+    if maybe_weight_feature := self._example_weight_map.get(types.FeaturePath(
+        [])):
       weights_column = arrow_util.get_column(examples, maybe_weight_feature)
       accumulator.weighted_num_examples += np.sum(
           np.asarray(weights_column.flatten()))
@@ -1087,8 +1081,8 @@ class BasicStatsGenerator(stats_generator.CombinerStatsGenerator):
       result.num_examples += accumulator.num_examples
       result.weighted_num_examples += accumulator.weighted_num_examples
       for feature_path, basic_stats in accumulator.items():
-        current_type = basic_stats.common_stats.type
         existing_stats = result.get(feature_path)
+        current_type = basic_stats.common_stats.type
         if existing_stats is None:
           existing_stats = basic_stats
           result[feature_path] = basic_stats
@@ -1100,9 +1094,9 @@ class BasicStatsGenerator(stats_generator.CombinerStatsGenerator):
           right_type = current_type
           if (left_type is not None and right_type is not None and
               left_type != right_type):
-            raise TypeError('Cannot determine the type of feature %s. '
-                            'Found values of types %s and %s.' %
-                            (feature_path, left_type, right_type))
+            raise TypeError(
+                f'Cannot determine the type of feature {feature_path}. Found values of types {left_type} and {right_type}.'
+            )
 
           existing_stats.common_stats.merge_with(feature_path,
                                                  basic_stats.common_stats)

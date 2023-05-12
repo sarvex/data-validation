@@ -56,12 +56,14 @@ class WeightedFeatureStatsGenerator(stats_generator.CompositeStatsGenerator):
       weight = types.FeaturePath.from_proto(weighted_feature.weight_feature)
       value = types.FeaturePath.from_proto(weighted_feature.feature)
       component_paths = [weight, value]
-      constituents.append(length_diff_generator.LengthDiffGenerator(
-          weight, value, required_paths=component_paths))
-      constituents.append(count_missing_generator.CountMissingGenerator(
-          value, required_paths=component_paths))
-      constituents.append(count_missing_generator.CountMissingGenerator(
-          weight, required_paths=component_paths))
+      constituents.extend((
+          length_diff_generator.LengthDiffGenerator(
+              weight, value, required_paths=component_paths),
+          count_missing_generator.CountMissingGenerator(
+              value, required_paths=component_paths),
+          count_missing_generator.CountMissingGenerator(
+              weight, required_paths=component_paths),
+      ))
     super(WeightedFeatureStatsGenerator, self).__init__(name, constituents,
                                                         schema)
 

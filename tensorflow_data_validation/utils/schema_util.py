@@ -47,28 +47,28 @@ def get_feature(schema: schema_pb2.Schema,
     ValueError: If the input feature is not found in the schema.
   """
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
   if not isinstance(feature_path, types.FeaturePath):
     feature_path = types.FeaturePath([feature_path])
 
   feature_container = schema.feature
-  parent = feature_path.parent()
-  if parent:
+  if parent := feature_path.parent():
     for step in parent.steps():
       f = look_up_feature(step, feature_container)
       if f is None:
-        raise ValueError('Feature %s not found in the schema.' % feature_path)
+        raise ValueError(f'Feature {feature_path} not found in the schema.')
       if f.type != schema_pb2.STRUCT:
         raise ValueError(
-            'Step %s in feature %s does not refer to a valid STRUCT feature' %
-            (step, feature_path))
+            f'Step {step} in feature {feature_path} does not refer to a valid STRUCT feature'
+        )
       feature_container = f.struct_domain.feature
 
   feature = look_up_feature(feature_path.steps()[-1], feature_container)
   if feature is None:
-    raise ValueError('Feature %s not found in the schema.' % feature_path)
+    raise ValueError(f'Feature {feature_path} not found in the schema.')
   return feature
 
 
@@ -92,15 +92,15 @@ def get_domain(
         no domain associated with the feature.
   """
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
   feature = get_feature(schema, feature_path)
   domain_info = feature.WhichOneof('domain_info')
 
   if domain_info is None:
-    raise ValueError('Feature %s has no domain associated with it.' %
-                     feature_path)
+    raise ValueError(f'Feature {feature_path} has no domain associated with it.')
 
   if domain_info != 'domain':
     return getattr(feature, domain_info)
@@ -108,8 +108,8 @@ def get_domain(
     if domain.name == feature.domain:
       return domain
 
-  raise ValueError('Feature %s has an unsupported domain %s.' %
-                   (feature_path, domain_info))
+  raise ValueError(
+      f'Feature {feature_path} has an unsupported domain {domain_info}.')
 
 
 def set_domain(schema: schema_pb2.Schema, feature_path: types.FeaturePath,
@@ -139,8 +139,9 @@ def set_domain(schema: schema_pb2.Schema, feature_path: types.FeaturePath,
     ValueError: If an invalid global string domain is provided as input.
   """
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
   # Find all fields types and names within domain_info.
   feature_domains = {}
@@ -157,8 +158,8 @@ def set_domain(schema: schema_pb2.Schema, feature_path: types.FeaturePath,
 
   feature = get_feature(schema, feature_path)
   if feature.type == schema_pb2.STRUCT:
-    raise TypeError('Could not set the domain of a STRUCT feature %s.' %
-                    feature_path)
+    raise TypeError(
+        f'Could not set the domain of a STRUCT feature {feature_path}.')
 
   if feature.WhichOneof('domain_info') is not None:
     logging.warning('Replacing existing domain of feature "%s".', feature_path)
@@ -166,13 +167,10 @@ def set_domain(schema: schema_pb2.Schema, feature_path: types.FeaturePath,
   for d_type, d_name in feature_domains.items():
     if isinstance(domain, d_type):
       if d_type == str:
-        found_domain = False
-        for global_domain in schema.string_domain:
-          if global_domain.name == domain:
-            found_domain = True
-            break
+        found_domain = any(global_domain.name == domain
+                           for global_domain in schema.string_domain)
         if not found_domain:
-          raise ValueError('Invalid global string domain "{}".'.format(domain))
+          raise ValueError(f'Invalid global string domain "{domain}".')
         feature.domain = domain
       else:
         getattr(feature, d_name).CopyFrom(domain)
@@ -189,8 +187,9 @@ def write_schema_text(schema: schema_pb2.Schema, output_path: Text) -> None:
     TypeError: If the input schema is not of the expected type.
   """
   if not isinstance(schema, schema_pb2.Schema):
-    raise TypeError('schema is of type %s, should be a Schema proto.' %
-                    type(schema).__name__)
+    raise TypeError(
+        f'schema is of type {type(schema).__name__}, should be a Schema proto.'
+    )
 
   schema_text = text_format.MessageToString(schema)
   io_util.write_string_to_file(output_path, schema_text)
@@ -266,8 +265,8 @@ def get_categorical_numeric_feature_types(
     if feature_path in categorical_numeric_types and categorical_numeric_types[
         feature_path] != feature.type:
       raise ValueError(
-          'Schema contains inconsistently typed duplicates for %s' %
-          feature_path)
+          f'Schema contains inconsistently typed duplicates for {feature_path}'
+      )
     if feature.type in (schema_pb2.INT,
                         schema_pb2.FLOAT) and is_categorical_feature(feature):
       categorical_numeric_types[feature_path] = feature.type
@@ -317,10 +316,7 @@ def look_up_feature(
     feature_name: types.FeatureName,
     container: Iterable[schema_pb2.Feature]) -> Optional[schema_pb2.Feature]:
   """Returns a feature if it is found in the specified container."""
-  for f in container:
-    if f.name == feature_name:
-      return f
-  return None
+  return next((f for f in container if f.name == feature_name), None)
 
 
 def get_all_leaf_features(

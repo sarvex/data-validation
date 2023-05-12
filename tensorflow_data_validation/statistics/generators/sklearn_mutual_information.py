@@ -13,6 +13,7 @@
 # limitations under the License.
 """Module that computes Mutual Information using sk-learn implementation."""
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -38,10 +39,9 @@ try:
   from sklearn.feature_selection import mutual_info_classif
   from sklearn.feature_selection import mutual_info_regression
 except ImportError as e:
-  raise ImportError('To use this StatsGenerator, make sure scikit-learn is '
-                    'installed, or install TFDV using "pip install '
-                    'tensorflow-data-validation[mutual-information]": {}'
-                    .format(e))
+  raise ImportError(
+      f'To use this StatsGenerator, make sure scikit-learn is installed, or install TFDV using "pip install tensorflow-data-validation[mutual-information]": {e}'
+  )
 
 _MUTUAL_INFORMATION_KEY = "sklearn_mutual_information"
 _ADJUSTED_MUTUAL_INFORMATION_KEY = "sklearn_adjusted_mutual_information"
@@ -145,10 +145,10 @@ class SkLearnMutualInformation(partitioned_stats_generator.PartitionedStatsFn):
     self._label_feature_is_categorical = (
         self._label_feature in self._categorical_features)
     self._seed = seed
-    self._schema_features = set([
-        feature_path for (feature_path,
-                          _) in schema_util.get_all_leaf_features(schema)
-    ])
+    self._schema_features = {
+        feature_path
+        for (feature_path, _) in schema_util.get_all_leaf_features(schema)
+    }
 
     # Seed the RNG used for shuffling and for MI computations.
     np.random.seed(seed)
@@ -359,11 +359,10 @@ class SkLearnMutualInformation(partitioned_stats_generator.PartitionedStatsFn):
     columns = set(examples.schema.names)
 
     multivalent_features = schema_util.get_multivalent_features(schema)
-    unsupported_columns = set()
-    for f in multivalent_features:
-      # Drop the column if they were in the examples.
-      if f.steps()[0] in columns:
-        unsupported_columns.add(f.steps()[0])
+    unsupported_columns = {
+        f.steps()[0]
+        for f in multivalent_features if f.steps()[0] in columns
+    }
     for column_name, column in zip(examples.schema.names,
                                    examples.columns):
       # only support 1-nested non-struct arrays.
@@ -414,11 +413,9 @@ def _sklearn_calculate_mi_wrapper(
   """
   if is_label_categorical:
     calc_mi_fn = mutual_info_classif
+  elif len(feature) <= _KNN_N_NEIGHBORS:
+    return None
   else:
-    # Skip if sample size is smaller than number of required neighbors plus
-    # itself.
-    if len(feature) <= _KNN_N_NEIGHBORS:
-      return None
     calc_mi_fn = mutual_info_regression
 
   return calc_mi_fn(

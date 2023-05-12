@@ -128,7 +128,7 @@ class TfImageDecoder(ImageDecoderInterface):
       return tf.cond(
           pred=tf.equal(tf.size(input=image_shape), 4),
           true_fn=lambda: image_shape[1:3],
-          false_fn=lambda: image_shape[0:2],
+          false_fn=lambda: image_shape[:2],
       )
 
     with self._session.graph.as_default(), self._session.as_default():

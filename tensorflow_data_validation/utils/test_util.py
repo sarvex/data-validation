@@ -100,10 +100,7 @@ def make_dataset_feature_stats_list_proto_equal_fn(
           actual, expected_result_len,
           'Expected exactly %d DatasetFeatureStatisticsList' %
           expected_result_len)
-      if len(actual) == 1:
-        actual = actual[0]
-      else:
-        actual = expected_result_merge_fn(actual)
+      actual = actual[0] if len(actual) == 1 else expected_result_merge_fn(actual)
       test.assertLen(actual.datasets, len(expected_result.datasets))
 
       sorted_actual_datasets = sorted(actual.datasets, key=lambda d: d.name)
@@ -132,10 +129,10 @@ def assert_feature_proto_equal(
   """
 
   test.assertLen(actual.custom_stats, len(expected.custom_stats))
-  expected_custom_stats = {}
-  for expected_custom_stat in expected.custom_stats:
-    expected_custom_stats[expected_custom_stat.name] = expected_custom_stat
-
+  expected_custom_stats = {
+      expected_custom_stat.name: expected_custom_stat
+      for expected_custom_stat in expected.custom_stats
+  }
   for actual_custom_stat in actual.custom_stats:
     test.assertIn(actual_custom_stat.name, expected_custom_stats)
     expected_custom_stat = expected_custom_stats[actual_custom_stat.name]
@@ -162,24 +159,27 @@ def assert_dataset_feature_stats_proto_equal(
     expected: The expected DatasetFeatureStatistics proto.
   """
   test.assertEqual(
-      expected.name, actual.name, 'Expected name to be {}, found {} in '
-      'DatasetFeatureStatistics {}'.format(expected.name, actual.name, actual))
+      expected.name,
+      actual.name,
+      f'Expected name to be {expected.name}, found {actual.name} in DatasetFeatureStatistics {actual}',
+  )
   test.assertEqual(
-      expected.num_examples, actual.num_examples,
-      'Expected num_examples to be {}, found {} in DatasetFeatureStatistics {}'
-      .format(expected.num_examples, actual.num_examples, actual))
+      expected.num_examples,
+      actual.num_examples,
+      f'Expected num_examples to be {expected.num_examples}, found {actual.num_examples} in DatasetFeatureStatistics {actual}',
+  )
   test.assertLen(actual.features, len(expected.features))
 
-  expected_features = {}
-  for feature in expected.features:
-    expected_features[types.FeaturePath.from_proto(feature.path)] = feature
-
+  expected_features = {
+      types.FeaturePath.from_proto(feature.path): feature
+      for feature in expected.features
+  }
   for feature in actual.features:
     feature_path = types.FeaturePath.from_proto(feature.path)
     if feature_path not in expected_features:
       raise AssertionError(
-          'Feature path %s found in actual but not found in expected.' %
-          feature_path)
+          f'Feature path {feature_path} found in actual but not found in expected.'
+      )
     assert_feature_proto_equal(test, feature, expected_features[feature_path])
 
 
@@ -221,8 +221,10 @@ class CombinerStatsGeneratorTest(absltest.TestCase):
     def _verify(output):
       """Verifies that the output meeds the expectations."""
       if only_match_expected_feature_stats:
-        features_in_stats = set(
-            [types.FeaturePath.from_proto(f.path) for f in output.features])
+        features_in_stats = {
+            types.FeaturePath.from_proto(f.path)
+            for f in output.features
+        }
         self.assertTrue(set(expected_feature_stats.keys())
                         .issubset(features_in_stats))
       else:
@@ -251,6 +253,7 @@ class CombinerStatsGeneratorTest(absltest.TestCase):
             expected_cross_feature_stats[cross],
             actual_cross_feature_stats,
             normalize_numbers=True)
+
     # Run generator to check that merge_accumulators() works correctly.
     accumulators = [
         generator.add_input(generator.create_accumulator(), batch)
